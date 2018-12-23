@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="37f12c2e-7340-496b-9904-01c25283fd50" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+  <ClientOptions>
+    <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
+    <GenerateTaskBasedAsynchronousMethod>true</GenerateTaskBasedAsynchronousMethod>
+    <EnableDataBinding>true</EnableDataBinding>
+    <ExcludedTypes />
+    <ImportXmlTypes>false</ImportXmlTypes>
+    <GenerateInternalTypes>false</GenerateInternalTypes>
+    <GenerateMessageContracts>false</GenerateMessageContracts>
+    <NamespaceMappings />
+    <CollectionMappings />
+    <GenerateSerializableTypes>true</GenerateSerializableTypes>
+    <Serializer>Auto</Serializer>
+    <UseSerializerForFaults>true</UseSerializerForFaults>
+    <ReferenceAllAssemblies>true</ReferenceAllAssemblies>
+    <ReferencedAssemblies />
+    <ReferencedDataContractTypes />
+    <ServiceContractMappings />
+  </ClientOptions>
+  <MetadataSources>
+    <MetadataSource Address="http://videoguard.ae/VGAlarmReceiver/Receiver.svc?wsdl" Protocol="http" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="ReceiverServiceResponse.wsdl" MetadataType="Wsdl" ID="c1d7b4d1-a826-40ce-b1f0-3c92d2fbd88c" SourceId="1" SourceUrl="http://videoguard.ae/VGAlarmReceiver/Receiver.svc?wsdl" />
+    <MetadataFile FileName="Receiver.xsd" MetadataType="Schema" ID="7001d2ac-0aa7-444d-afad-8d6b505e7d46" SourceId="1" SourceUrl="http://videoguard.ae/VGAlarmReceiver/Receiver.svc?xsd=xsd1" />
+    <MetadataFile FileName="Receiver1.xsd" MetadataType="Schema" ID="aa26ef21-674e-4bc1-bd27-661bf42d581f" SourceId="1" SourceUrl="http://videoguard.ae/VGAlarmReceiver/Receiver.svc?xsd=xsd0" />
+  </Metadata>
+  <Extensions>
+    <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
+    <ExtensionFile FileName="configuration.svcinfo" Name="configuration.svcinfo" />
+  </Extensions>
+</ReferenceGroup>
