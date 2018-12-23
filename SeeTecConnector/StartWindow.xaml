@@ -5,9 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SeeTecConnector"
         mc:Ignorable="d"
-        Title="StartWindow" Height="300" Width="500" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
-    <Grid>
-        <Label Content="Connecting to SeeTec Connector. Please wait..." HorizontalAlignment="Left" Margin="156,170,0,0" VerticalAlignment="Top" Height="51" Width="351"/>
-
-    </Grid>
+        Title="SeeTec Connector" Height="300" Width="500" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Background="LightGray">
+    
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Label Content="Connecting to SeeTec Connector. Please wait..." HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="18" FontFamily="Calibri" FontWeight="Bold"/>
+    </StackPanel>
+    
 </Window>

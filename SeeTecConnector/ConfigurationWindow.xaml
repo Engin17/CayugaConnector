@@ -5,30 +5,38 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SeeTecConnector"
         mc:Ignorable="d"
-        Title="Configuration" Height="450" Width="800" WindowStartupLocation="CenterScreen">
-    <Grid>
-        <Label Content="Recorder Info:" HorizontalAlignment="Left" Margin="319,247,0,0" VerticalAlignment="Top" RenderTransformOrigin="7.079,7.49"/>
-        <Label Content="Heartbeat:" HorizontalAlignment="Left" Margin="319,193,0,0" VerticalAlignment="Top"/>
-        <Label Content="INR:" HorizontalAlignment="Left" Margin="319,98,0,0" VerticalAlignment="Top"/>
-        <Label Content="Profile:" HorizontalAlignment="Left" Margin="47,265,0,0" VerticalAlignment="Top"/>
-        <Label Content="Username:" HorizontalAlignment="Left" Margin="47,185,0,0" VerticalAlignment="Top"/>
-        <Label Content="Password:" HorizontalAlignment="Left" Margin="47,216,0,0" VerticalAlignment="Top" Height="27"/>
-        <Label Content="Host Port:" HorizontalAlignment="Left" Margin="47,145,0,0" VerticalAlignment="Top"/>
-        <Label Content="Host IP:" HorizontalAlignment="Left" Margin="47,98,0,0" VerticalAlignment="Top"/>
-        <Label Content="ms" HorizontalAlignment="Left" Margin="543,255,0,0" VerticalAlignment="Top"/>
-        <Label Content="ms" HorizontalAlignment="Left" Margin="543,198,0,0" VerticalAlignment="Top"/>
-        <Label Content="Configuration" HorizontalAlignment="Left" Margin="47,41,0,0" VerticalAlignment="Top"/>
+        Title="Configuration" Height="350" Width="600" WindowStartupLocation="CenterScreen">
 
-        <TextBox Name="tbHostIP" HorizontalAlignment="Left" Height="23" Margin="122,102,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <TextBox Name="tbHostPort" HorizontalAlignment="Left" Height="23" Margin="122,145,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <TextBox Name="tbUser" HorizontalAlignment="Left" Height="23" Margin="122,188,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <TextBox Name="tbPassword" HorizontalAlignment="Left" Height="23" Margin="122,220,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <TextBox Name="tbProfile" HorizontalAlignment="Left" Height="23" Margin="122,269,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <TextBox Name="tbINR" HorizontalAlignment="Left" Height="23" Margin="398,102,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <TextBox Name="tbHeartbeat" HorizontalAlignment="Left" Height="23" Margin="398,196,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <TextBox Name="tbRecorderInfo" HorizontalAlignment="Left" Height="23" Margin="403,250,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+    <Window.Resources>
+        <Style TargetType="Label">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontFamily" Value="Calibri" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+    </Window.Resources>
 
-        <Button Content="Cancel" HorizontalAlignment="Left" Margin="122,338,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
-        <Button Content="Save" HorizontalAlignment="Left" Margin="309,336,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_1"/>
+    <Grid Margin="0,0,-0.4,3.4" Background="LightGray">
+        <Label Content="Recorder Info:" HorizontalAlignment="Left" Margin="293,178,0,0" VerticalAlignment="Top" RenderTransformOrigin="7.079,7.49"/>
+        <Label Content="Heartbeat:" HorizontalAlignment="Left" Margin="294,147,0,0" VerticalAlignment="Top"/>
+        <Label Content="INR:" HorizontalAlignment="Left" Margin="294,42,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.601,1.081"/>
+        <Label Content="Profile:" HorizontalAlignment="Left" Margin="49,178,0,0" VerticalAlignment="Top"/>
+        <Label Content="Username:" HorizontalAlignment="Left" Margin="49,110,0,0" VerticalAlignment="Top"/>
+        <Label Content="Password:" HorizontalAlignment="Left" Margin="49,144,0,0" VerticalAlignment="Top" Height="27"/>
+        <Label Content="Host Port:" HorizontalAlignment="Left" Margin="49,76,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.503,-0.228"/>
+        <Label Content="Host IP:" HorizontalAlignment="Left" Margin="49,42,0,0" VerticalAlignment="Top"/>
+        <Label Content="ms" HorizontalAlignment="Left" Margin="516,182,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.449,-0.169"/>
+        <Label Content="ms" HorizontalAlignment="Left" Margin="516,147,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.36,0.801"/>
+
+        <TextBox Name="tbHostIP" HorizontalAlignment="Left" Height="23" Margin="123,46,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox Name="tbHostPort" HorizontalAlignment="Left" Height="23" Margin="124,78,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox Name="tbUser" HorizontalAlignment="Left" Height="23" Margin="123,114,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox Name="tbPassword" HorizontalAlignment="Left" Height="23" Margin="123,148,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox Name="tbProfile" HorizontalAlignment="Left" Height="23" Margin="124,182,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox Name="tbINR" HorizontalAlignment="Left" Height="23" Margin="391,46,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox Name="tbHeartbeat" HorizontalAlignment="Left" Height="23" Margin="391,148,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox Name="tbRecorderInfo" HorizontalAlignment="Left" Height="23" Margin="391,182,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+
+        <Button Content="Cancel" HorizontalAlignment="Left" Margin="124,241,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
+        <Button Content="Save" HorizontalAlignment="Left" Margin="294,240,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_1"/>
     </Grid>
 </Window>

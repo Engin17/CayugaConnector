@@ -131,11 +131,6 @@ namespace SeeTecConnector
             startWindow.Close();
         }
 
-        private void ShowStartWindow()
-        {
-            
-        }
-
         private void StartConnector()
         {
             MainWindow.cayugaVersion = this.GetVersion();
@@ -196,6 +191,15 @@ namespace SeeTecConnector
         {
             try
             {
+                if (Dispatcher.CheckAccess())
+                {
+                    tblockAssembly.Text = this.GetRunningVersion();
+                }
+                else
+                {
+                    Dispatcher.Invoke(() => { tblockAssembly.Text = this.GetRunningVersion(); });
+                }
+                
                 // Check if the log directory exists. If not create directory
                 if (!Directory.Exists(logFolderPath))
                 {
@@ -418,8 +422,6 @@ namespace SeeTecConnector
         {
             try
             {
-                this.LogUI("Connecting to Cayuga server.");
-
                 using (StreamWriter w = File.AppendText(logFilePath))
                 {
                     Log("Connecting to Cayuga server.", w);
@@ -466,10 +468,11 @@ namespace SeeTecConnector
                     if (Dispatcher.CheckAccess())
                     {
                         labelStatusSeeTec.Content = "Connected";
+                        labelStatusSeeTec.Foreground = Brushes.Green;
                     }
                     else
                     {
-                        Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Connected"; });
+                        Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Connected"; labelStatusSeeTec.Foreground = Brushes.Green; });
                     }
 
                     this.LogUI("Successfully connected to Cayuga server.");
@@ -486,10 +489,11 @@ namespace SeeTecConnector
                     if (Dispatcher.CheckAccess())
                     {
                         labelStatusSeeTec.Content = "Not Connected";
+                        labelStatusSeeTec.Foreground = Brushes.Red;
                     }
                     else
                     {
-                        Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Not Connected"; });
+                        Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Not Connected"; labelStatusSeeTec.Foreground = Brushes.Red; });
                     }
 
                     this.LogUI("Can not connect to Cayuga server.Problem: " + MainWindow.InstallationIDResult.Result);
@@ -527,10 +531,11 @@ namespace SeeTecConnector
             if (Dispatcher.CheckAccess())
             {
                 labelStatusSeeTec.Content = "Not Connected";
+                labelStatusSeeTec.Foreground = Brushes.Red;
             }
             else
             {
-                Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Not Connected"; });
+                Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Not Connected"; labelStatusSeeTec.Foreground = Brushes.Red; });
             }
         }
 
@@ -548,10 +553,11 @@ namespace SeeTecConnector
             if (Dispatcher.CheckAccess())
             {
                 labelStatusSeeTec.Content = "Connected";
+                labelStatusSeeTec.Foreground = Brushes.Green;
             }
             else
             {
-                Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Connected"; });
+                Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Connected"; labelStatusSeeTec.Foreground = Brushes.Green; });
             }
         }
 
@@ -918,6 +924,24 @@ namespace SeeTecConnector
                     configurationWindow.tbRecorderInfo.Text = recorderInfo;
                 }
             }
+        }
+
+        /// <summary>
+        /// Method to get the current Assembly information
+        /// </summary>
+        private string GetRunningVersion()
+        {
+            try
+            {
+                String s = "v" + Assembly.GetExecutingAssembly().GetName().Version;
+                return s.Substring(0, 6);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return "xxx";
+            }
+
         }
 
         public static void Log(string logMessage, TextWriter w)
