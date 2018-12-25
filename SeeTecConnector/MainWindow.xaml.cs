@@ -28,6 +28,8 @@ using Path = System.IO.Path;
 
 namespace SeeTecConnector
 {
+    #region Web service classes
+
     public class HeartbeatRequest
     {
         public string SiteNo { get; set; }
@@ -57,6 +59,8 @@ namespace SeeTecConnector
         public int NoOfChannel { get; set; }
     }
 
+    #endregion
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -84,10 +88,10 @@ namespace SeeTecConnector
         private static string macAddress = "Unknown";
 
         public static string hostIP;
-        static int hostPort;
-        static string username;
-        static string profile;
-        static string password;
+        public static int hostPort;
+        public static string username;
+        public static string profile;
+        public static string password;
         public static string inr;
         public static int heartbeat;
         public static int recorderInfo;
@@ -100,13 +104,23 @@ namespace SeeTecConnector
 
             InitializeComponent();
 
-            startWindow = new StartWindow();
-            startWindow.Show();
+            MainWindow.startWindow = new StartWindow();
+            MainWindow.startWindow.Show();
 
             this.PrepareStart();
 
             this.ConnectToCayuga();
 
+            this.SetHostIPGUI();
+
+            MainWindow.startWindow.Close();
+        }
+
+        /// <summary>
+        /// Set Host IP for the UI after reading the configuration XML
+        /// </summary>
+        private void SetHostIPGUI()
+        {
             if (File.Exists(MainWindow.configFilePath))
             {
                 // Load the configuration xml and read out the connection status to SeeTec 
@@ -127,10 +141,12 @@ namespace SeeTecConnector
                     }
                 }
             }
-
-            startWindow.Close();
         }
 
+        /// <summary>
+        /// Get informations for the connector
+        /// Start to send periodically heartbeat and recorder info to the Videoguard web service
+        /// </summary>
         private void StartConnector()
         {
             MainWindow.cayugaVersion = this.GetVersion();
@@ -144,25 +160,56 @@ namespace SeeTecConnector
             this.StartSendRecordInfoRequest();
         }
 
-        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Read configuration from XML and open configuration window
+        /// </summary>
+        private void MenuItemConfiguration_Click(object sender, RoutedEventArgs e)
         {
-            configurationWindow = new ConfigurationWindow();
+            MainWindow.configurationWindow = new ConfigurationWindow();
 
-            ReadConfiguration();
-            configurationWindow.ShowDialog();
+            this.ReadConfiguration();
+
+            MainWindow.configurationWindow.ShowDialog();
         }
 
-        private void MenuItem_Click_1(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Close SeeTec Connector
+        /// </summary>
+        private void MenuItemCloseMainWindow_Click_1(object sender, RoutedEventArgs e)
         {
             Close();
         }
 
         /// <summary>
-        /// Reconnect button
+        /// Try reconnect to Cayuga server
         /// </summary>
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void ButtonReconnect_Click(object sender, RoutedEventArgs e)
         {
-            this.ConnectToCayuga();
+            Thread threadTryReconnect = new Thread(() =>
+            {
+                if (Dispatcher.CheckAccess())
+                {
+                    btnReconnect.IsEnabled = false;
+                }
+                else
+                {
+                    Dispatcher.Invoke(() => { btnReconnect.IsEnabled = false; });
+                }
+
+                this.LogUI("Try connecting to Cayuga server.");
+
+                this.PrepareStart();
+
+                this.SetHostIPGUI();
+
+                this.ConnectToCayuga();
+            });
+            threadTryReconnect.Start();
+        }
+
+        private void ButtonCheckVideoguard_Click(object sender, RoutedEventArgs e)
+        {
+
         }
 
         /// <summary>
@@ -185,7 +232,7 @@ namespace SeeTecConnector
         }
 
         /// <summary>
-        /// Load configuration xml for the connector. f not exists then create the configuration.
+        /// Load configuration XML for the Connector. If not exists then create the configuration XML.
         /// </summary>
         private void PrepareStart()
         {
@@ -199,7 +246,7 @@ namespace SeeTecConnector
                 {
                     Dispatcher.Invoke(() => { tblockAssembly.Text = this.GetRunningVersion(); });
                 }
-                
+
                 // Check if the log directory exists. If not create directory
                 if (!Directory.Exists(logFolderPath))
                 {
@@ -443,19 +490,20 @@ namespace SeeTecConnector
                 {
                     MainWindow.isConnectedToSeeTec = true;
 
-                    Thread prepareStartThread = new Thread(() =>
+                    Thread startConnectorThread = new Thread(() =>
                     {
                         StartConnector();
                     });
-                    prepareStartThread.Start();
+                    startConnectorThread.Start();
 
                     if (Dispatcher.CheckAccess())
                     {
                         btnReconnect.IsEnabled = false;
+                        btnCheckVideoguard.IsEnabled = true;
                     }
                     else
                     {
-                        Dispatcher.Invoke(() => { btnReconnect.IsEnabled = false; });
+                        Dispatcher.Invoke(() => { btnReconnect.IsEnabled = false; btnCheckVideoguard.IsEnabled = true;});
                     }
 
                     ConnectedInstallationID = MainWindow.InstallationIDResult.ReturnValue;
@@ -496,12 +544,22 @@ namespace SeeTecConnector
                         Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Not Connected"; labelStatusSeeTec.Foreground = Brushes.Red; });
                     }
 
-                    this.LogUI("Can not connect to Cayuga server.Problem: " + MainWindow.InstallationIDResult.Result);
+                    if (Dispatcher.CheckAccess())
+                    {
+                        btnReconnect.IsEnabled = true;
+                        btnCheckVideoguard.IsEnabled = false;
+                    }
+                    else
+                    {
+                        Dispatcher.Invoke(() => { btnReconnect.IsEnabled = true; btnCheckVideoguard.IsEnabled = false;});
+                    }
+
+                    this.LogUI("Cannot connect to Cayuga server.Problem: " + MainWindow.InstallationIDResult.Result);
                     this.LogUI("Connection problem. Check Connector configuration and if the Cayuga Server is running.");
 
                     using (StreamWriter w = File.AppendText(logFilePath))
                     {
-                        Log("Can not connect to Cayuga server. Problem: " + MainWindow.InstallationIDResult.Result, w);
+                        Log("Cannot connect to Cayuga server. Problem: " + MainWindow.InstallationIDResult.Result, w);
                         Log("Connection problem. Check Connector configuration and if the Cayuga Server is running.", w);
                     }
                 }
@@ -517,15 +575,18 @@ namespace SeeTecConnector
             }
         }
 
+        /// <summary>
+        /// Disconnected event from SeeTec SDK
+        /// </summary>
         private void OnDisconnectToSeeTecServer(Guid installationID)
         {
             MainWindow.isConnectedToSeeTec = false;
 
-            this.LogUI("Disconnected to SeeTec. Waiting until Core is running again.");
+            this.LogUI("Disconnected to SeeTec. Waiting until Core is running again...");
 
             using (StreamWriter w = File.AppendText(logFilePath))
             {
-                Log("Disconnected to SeeTec. Waiting until Core is running again.", w);
+                Log("Disconnected to SeeTec. Waiting until Core is running again...", w);
             }
 
             if (Dispatcher.CheckAccess())
@@ -539,15 +600,18 @@ namespace SeeTecConnector
             }
         }
 
+        /// <summary>
+        /// Reconnected event from SeeTec SDK
+        /// </summary>
         private void OnReconnectToSeeTecServer(Guid installationID)
         {
             MainWindow.isConnectedToSeeTec = true;
 
-            this.LogUI("Reconnected to SeeTec");
+            this.LogUI("Reconnected to SeeTec.");
 
             using (StreamWriter w = File.AppendText(logFilePath))
             {
-                Log("Reconnected to SeeTec", w);
+                Log("Reconnected to SeeTec.", w);
             }
 
             if (Dispatcher.CheckAccess())
@@ -561,6 +625,9 @@ namespace SeeTecConnector
             }
         }
 
+        /// <summary>
+        /// Video management events from SeeTec SDK
+        /// </summary>
         private void OnvideoManager_VideoManagement(SDKEvent evt)
         {
             SDKVideoManager videoManager = SDKVideoManagerFactory.GetManager();
@@ -964,7 +1031,7 @@ namespace SeeTecConnector
                 Dispatcher.Invoke(() => { listBox1.ScrollIntoView(listBox1.SelectedItem); });
             }
         }
-
+       
     }
 }
 

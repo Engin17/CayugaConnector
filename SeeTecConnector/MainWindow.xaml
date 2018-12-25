@@ -11,8 +11,8 @@
         <Menu Margin="0,0,-0.4,431.4" Background="Gray" Foreground="White">
 
             <MenuItem Header="_Menu" Height="29" >
-                <MenuItem Header="_Configuration" Click="MenuItem_Click" Background="LightGray" Foreground="Black" />
-                <MenuItem Header="_Exit" Click="MenuItem_Click_1" Background="LightGray" Foreground="Black"/>
+                <MenuItem Header="_Configuration" Click="MenuItemConfiguration_Click" Background="LightGray" Foreground="Black" />
+                <MenuItem Header="_Exit" Click="MenuItemCloseMainWindow_Click_1" Background="LightGray" Foreground="Black"/>
             </MenuItem>
         </Menu>
 
@@ -22,10 +22,10 @@
         <Label Name="labelStatusSeeTec" Content="Unknown" HorizontalAlignment="Left" Margin="109,90,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.237,0.231"/>
         <Label Content="Connected to Videoguard:" HorizontalAlignment="Left" Margin="272,56,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.237,0.231" FontWeight="Bold"/>
         <Label Name="labelStatusVideoguard" Content="Unknown" HorizontalAlignment="Left" Margin="435,56,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.237,0.231"/>
-        <Button Content="Connection Videoguard" HorizontalAlignment="Left" Margin="272,90,0,0" VerticalAlignment="Top" Width="138" Height="25" />
+        <Button Name="btnCheckVideoguard" Content="Connection Videoguard" HorizontalAlignment="Left" Margin="272,90,0,0" VerticalAlignment="Top" Width="138" Height="25" Click="ButtonCheckVideoguard_Click" />
         <Button Content="Open Logs" HorizontalAlignment="Left" Margin="682,122,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_1" Height="25" RenderTransformOrigin="1.475,0.072"/>
         <ListBox Name="listBox1" HorizontalAlignment="Left" Height="257" Margin="35,167,0,0" VerticalAlignment="Top" Width="722" />
-        <Button Name="btnReconnect" Content="Reconnect" HorizontalAlignment="Left" Margin="682,57,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click" Height="25" RenderTransformOrigin="0.845,0.648"/>
+        <Button Name="btnReconnect" Content="Reconnect" HorizontalAlignment="Left" Margin="682,57,0,0" VerticalAlignment="Top" Width="75" Click="ButtonReconnect_Click" Height="25" RenderTransformOrigin="0.845,0.648"/>
 
         <TextBlock Text="v1.0.0" Name="tblockAssembly" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="38" Margin="0,0,36.6,10.4" RenderTransformOrigin="-0.226,0.25" />
 
