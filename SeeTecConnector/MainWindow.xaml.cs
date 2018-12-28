@@ -431,11 +431,11 @@ namespace SeeTecConnector
                         writer.WriteEndElement();
 
                         writer.WriteStartElement("Heartbeat");
-                        writer.WriteValue("300000");
+                        writer.WriteValue("300");
                         writer.WriteEndElement();
 
-                        writer.WriteStartElement("SendRecorderInfo");
-                        writer.WriteValue("300000");
+                        writer.WriteStartElement("RecorderInfo");
+                        writer.WriteValue("300");
                         writer.WriteEndElement();
 
                         writer.WriteStartElement("ConnectionSeeTec");
