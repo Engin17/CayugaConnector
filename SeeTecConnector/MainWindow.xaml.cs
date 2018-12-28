@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SeeTec.SDK;
 using SeeTecConnector.ServiceReference1;
 using System;
@@ -209,7 +210,18 @@ namespace SeeTecConnector
 
         private void ButtonCheckVideoguard_Click(object sender, RoutedEventArgs e)
         {
-
+            Thread threadHeartBeat = new Thread(() =>
+            {
+                while (true)
+                {
+                    if (MainWindow.isConnectedToSeeTec)
+                    {
+                        SendHeartBeat();
+                    }
+                    Thread.Sleep(MainWindow.heartbeat);
+                }
+            });
+            threadHeartBeat.Start();
         }
 
         /// <summary>
@@ -227,7 +239,6 @@ namespace SeeTecConnector
             }
             catch (Win32Exception)
             {
-
             }
         }
 
@@ -238,6 +249,9 @@ namespace SeeTecConnector
         {
             try
             {
+                Log("------------------------------------------------------------------------------");
+                Log("Start SeeTec Connector");
+
                 if (Dispatcher.CheckAccess())
                 {
                     tblockAssembly.Text = this.GetRunningVersion();
@@ -258,10 +272,7 @@ namespace SeeTecConnector
                     }
                     catch (Exception ex)
                     {
-                        using (StreamWriter w = File.AppendText(logFilePath))
-                        {
-                            Log(ex.Message + " (PrepareStart)", w);
-                        }
+                        Log(ex.Message + " (PrepareStart)");
                     }
                 }
                 else
@@ -346,7 +357,7 @@ namespace SeeTecConnector
                         string heartbeat;
                         heartbeat = elemListHeartbeat[i].InnerXml;
 
-                        MainWindow.heartbeat = Convert.ToInt32(heartbeat);
+                        MainWindow.heartbeat = Convert.ToInt32(heartbeat) * 1000; // seconds in milliseconds
                     }
 
                     XmlNodeList elemListRecorderInfo = xmlDoc.GetElementsByTagName("RecorderInfo");
@@ -356,13 +367,9 @@ namespace SeeTecConnector
                         string recorderInfo;
                         recorderInfo = elemListRecorderInfo[i].InnerXml;
 
-                        MainWindow.recorderInfo = Convert.ToInt32(recorderInfo);
+                        MainWindow.recorderInfo = Convert.ToInt32(recorderInfo) * 1000; // seconds in milliseconds
                     }
-
-                    using (StreamWriter w = File.AppendText(logFilePath))
-                    {
-                        Log("Connector configuration successfully loaded", w);
-                    }
+                    Log("Connector configuration successfully loaded");
                 }
 
                 // Create connector xml configuration file because its not created yet or its deleted
@@ -389,10 +396,7 @@ namespace SeeTecConnector
                         }
                         catch (Exception ex)
                         {
-                            using (StreamWriter w = File.AppendText(logFilePath))
-                            {
-                                Log(ex.Message + " (PrepareStart)", w);
-                            }
+                            Log(ex.Message + " (PrepareStart)");
                         }
                     }
 
@@ -430,7 +434,7 @@ namespace SeeTecConnector
                         writer.WriteValue("300000");
                         writer.WriteEndElement();
 
-                        writer.WriteStartElement("RecorderInfo");
+                        writer.WriteStartElement("SendRecorderInfo");
                         writer.WriteValue("300000");
                         writer.WriteEndElement();
 
@@ -444,19 +448,12 @@ namespace SeeTecConnector
 
                         writer.WriteEndDocument();
                     }
-
-                    using (StreamWriter w = File.AppendText(logFilePath))
-                    {
-                        Log("Connector configuration successfully loaded", w);
-                    }
+                    Log("Connector configuration successfully loaded");
                 }
             }
             catch (Exception ex)
             {
-                using (StreamWriter w = File.AppendText(logFilePath))
-                {
-                    Log(ex.Message + " (PrepareStart) ", w);
-                }
+                Log(ex.Message + " (PrepareStart) ");
             }
         }
 
@@ -469,10 +466,7 @@ namespace SeeTecConnector
         {
             try
             {
-                using (StreamWriter w = File.AppendText(logFilePath))
-                {
-                    Log("Connecting to Cayuga server.", w);
-                }
+                Log("Connecting to Cayuga server.");
 
                 //Login
                 SDKConnectionInfo connectionInfo = new SDKConnectionInfo();
@@ -503,11 +497,10 @@ namespace SeeTecConnector
                     }
                     else
                     {
-                        Dispatcher.Invoke(() => { btnReconnect.IsEnabled = false; btnCheckVideoguard.IsEnabled = true;});
+                        Dispatcher.Invoke(() => { btnReconnect.IsEnabled = false; btnCheckVideoguard.IsEnabled = true; });
                     }
 
-                    ConnectedInstallationID = MainWindow.InstallationIDResult.ReturnValue;
-                    this.CountCameras();
+                    MainWindow.ConnectedInstallationID = MainWindow.InstallationIDResult.ReturnValue;
                     videoManager.VideoManagementEvent += OnvideoManager_VideoManagement;
                     videoManager.Disconnected += OnDisconnectToSeeTecServer;
                     videoManager.Reconnected += OnReconnectToSeeTecServer;
@@ -525,10 +518,7 @@ namespace SeeTecConnector
 
                     this.LogUI("Successfully connected to Cayuga server.");
 
-                    using (StreamWriter w = File.AppendText(logFilePath))
-                    {
-                        Log("Successfully connected to Cayuga server.", w);
-                    }
+                    Log("Successfully connected to Cayuga server.");
                 }
                 else
                 {
@@ -551,27 +541,21 @@ namespace SeeTecConnector
                     }
                     else
                     {
-                        Dispatcher.Invoke(() => { btnReconnect.IsEnabled = true; btnCheckVideoguard.IsEnabled = false;});
+                        Dispatcher.Invoke(() => { btnReconnect.IsEnabled = true; btnCheckVideoguard.IsEnabled = false; });
                     }
 
                     this.LogUI("Cannot connect to Cayuga server.Problem: " + MainWindow.InstallationIDResult.Result);
                     this.LogUI("Connection problem. Check Connector configuration and if the Cayuga Server is running.");
 
-                    using (StreamWriter w = File.AppendText(logFilePath))
-                    {
-                        Log("Cannot connect to Cayuga server. Problem: " + MainWindow.InstallationIDResult.Result, w);
-                        Log("Connection problem. Check Connector configuration and if the Cayuga Server is running.", w);
-                    }
+                    Log("Cannot connect to Cayuga server. Problem: " + MainWindow.InstallationIDResult.Result);
+                    Log("Connection problem. Check Connector configuration and if the Cayuga Server is running.");
                 }
             }
             catch (Exception ex)
             {
                 this.LogUI(ex.Message + " (ConnectToCayuga)");
 
-                using (StreamWriter w = File.AppendText(logFilePath))
-                {
-                    Log(ex.Message + " (ConnectToCayuga)", w);
-                }
+                Log(ex.Message + " (ConnectToCayuga)");
             }
         }
 
@@ -584,19 +568,18 @@ namespace SeeTecConnector
 
             this.LogUI("Disconnected to SeeTec. Waiting until Core is running again...");
 
-            using (StreamWriter w = File.AppendText(logFilePath))
-            {
-                Log("Disconnected to SeeTec. Waiting until Core is running again...", w);
-            }
+            Log("Disconnected to SeeTec. Waiting until Core is running again...");
 
             if (Dispatcher.CheckAccess())
             {
                 labelStatusSeeTec.Content = "Not Connected";
                 labelStatusSeeTec.Foreground = Brushes.Red;
+
+                btnCheckVideoguard.IsEnabled = false;
             }
             else
             {
-                Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Not Connected"; labelStatusSeeTec.Foreground = Brushes.Red; });
+                Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Not Connected"; labelStatusSeeTec.Foreground = Brushes.Red; btnCheckVideoguard.IsEnabled = false; });
             }
         }
 
@@ -609,19 +592,18 @@ namespace SeeTecConnector
 
             this.LogUI("Reconnected to SeeTec.");
 
-            using (StreamWriter w = File.AppendText(logFilePath))
-            {
-                Log("Reconnected to SeeTec.", w);
-            }
+            Log("Reconnected to SeeTec.");
 
             if (Dispatcher.CheckAccess())
             {
                 labelStatusSeeTec.Content = "Connected";
                 labelStatusSeeTec.Foreground = Brushes.Green;
+
+                btnCheckVideoguard.IsEnabled = true;
             }
             else
             {
-                Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Connected"; labelStatusSeeTec.Foreground = Brushes.Green; });
+                Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Connected"; labelStatusSeeTec.Foreground = Brushes.Green; btnCheckVideoguard.IsEnabled = true; });
             }
         }
 
@@ -633,60 +615,60 @@ namespace SeeTecConnector
             SDKVideoManager videoManager = SDKVideoManagerFactory.GetManager();
             var timestamp = evt.TimeStamp;
             var sourceID = evt.SourceID;
-            var entity = videoManager.GetEntity(ConnectedInstallationID, sourceID);
-            var cause = videoManager.GetEntity(ConnectedInstallationID, evt.CauseID);
+            var entity = videoManager.GetEntity(MainWindow.ConnectedInstallationID, sourceID);
+            var cause = videoManager.GetEntity(MainWindow.ConnectedInstallationID, evt.CauseID);
 
             if (evt.EventType == SDKEventType.CMVideoSourceNotAvailable) //VideoLoss, only defined for "cable not connected"
             {
-                SendAlarm("1", timestamp, entity.Name, "Video Loss");
-                NotReachableCameras.Add(sourceID);
+                this.SendAlarm("1", timestamp, entity.Name, "Video Loss");
+                MainWindow.NotReachableCameras.Add(sourceID);
             }
             else if (evt.EventType == SDKEventType.AlarmRecordingStart)
             {
-                SendAlarm("9", timestamp, entity.Name, "Alarm Recording Start");
+                this.SendAlarm("9", timestamp, entity.Name, "Alarm Recording Start");
             }
             else if (evt.EventType == SDKEventType.AlarmRecordingStop)
             {
-                SendAlarm("10", timestamp, entity.Name, "Alarm Recording Stop");
+                this.SendAlarm("10", timestamp, entity.Name, "Alarm Recording Stop");
             }
             else if (evt.EventType == SDKEventType.AlarmTriggered)
             {
-                SendAlarm("7", timestamp, entity.Name, "Alarm scenario started");
+                this.SendAlarm("7", timestamp, entity.Name, "Alarm scenario started");
             }
             else if (evt.EventType == SDKEventType.EntityStatusChanged)
             {
                 if (videoManager.IsSubType(SDKEntityType.VideoSource, entity.EntityType) &&
                     entity.Status == 0 &&
-                    NotReachableCameras.Contains(sourceID))
+                    MainWindow.NotReachableCameras.Contains(sourceID))
                 {
-                    SendAlarm("2", timestamp, entity.Name, "Video Reconnect");
-                    NotReachableCameras.Remove(sourceID);
+                    this.SendAlarm("2", timestamp, entity.Name, "Video Reconnect");
+                    MainWindow.NotReachableCameras.Remove(sourceID);
 
                 }
                 else if (entity.EntityType == SDKEntityType.RuntimeDM && entity.Status == 0 && DMwithFailure.Contains(sourceID)) //only when DM was offline at first
                 {
-                    isRecordingServerOfflineAlreadyDetected = false;
-                    SendAlarm("5", timestamp, entity.Name, "Recording Server Online");
-                    DMwithFailure.Remove(sourceID);
+                    MainWindow.isRecordingServerOfflineAlreadyDetected = false;
+                    this.SendAlarm("5", timestamp, entity.Name, "Recording Server Online");
+                    MainWindow.DMwithFailure.Remove(sourceID);
                 }
             }
             else if (evt.EventType == SDKEventType.MDBZoneAlmostFull)
             {
-                SendAlarm("3", timestamp, entity.Name, "MDS zone is almost full");
+                this.SendAlarm("3", timestamp, entity.Name, "MDS zone is almost full");
             }
             else if (evt.EventType == SDKEventType.REInvalidStatus || evt.EventType == SDKEventType.CMCannotStart || evt.EventType == SDKEventType.EntityDeregistered)
             {
                 if (entity.EntityType == SDKEntityType.RuntimeDM && !isRecordingServerOfflineAlreadyDetected)
                 {
-                    isRecordingServerOfflineAlreadyDetected = true;
-                    SendAlarm("6", timestamp, entity.Name, "Recording Server Offline");
-                    DMwithFailure.Add(sourceID);
+                    MainWindow.isRecordingServerOfflineAlreadyDetected = true;
+                    this.SendAlarm("6", timestamp, entity.Name, "Recording Server Offline");
+                    MainWindow.DMwithFailure.Add(sourceID);
                 }
             }
         }
 
         /// <summary>
-        /// Send heartbeat to Videoguard if connected to SeeTec
+        /// Send heartbeat to Videoguard periodically if connected to SeeTec
         /// </summary>
         private void StartSendHeart()
         {
@@ -704,6 +686,9 @@ namespace SeeTecConnector
             threadHeartBeat.Start();
         }
 
+        /// <summary>
+        /// Send recorder info to Videoguard periodically if connected to SeeTec
+        /// </summary>
         private void StartSendRecordInfoRequest()
         {
             Thread threadRecorderInfo = new Thread(() =>
@@ -712,7 +697,7 @@ namespace SeeTecConnector
                 {
                     if (MainWindow.isConnectedToSeeTec)
                     {
-                        RecorderInfo();
+                        SendRecorderInfo();
                     }
                     Thread.Sleep(MainWindow.recorderInfo);
                 }
@@ -720,6 +705,9 @@ namespace SeeTecConnector
             threadRecorderInfo.Start();
         }
 
+        /// <summary>
+        /// Count camera number in SeeTec system
+        /// </summary>
         private int CountCameras()
         {
             try
@@ -741,49 +729,58 @@ namespace SeeTecConnector
                         searchStack.Push(videoManager.GetEntity(currentEntity.InstallationID, childID));
                     }
                 }
-                return videoSources.Count;
+                Log("Camera number in the system is: " + videoSources.Count);
 
+                return videoSources.Count;
             }
             catch (Exception ex)
             {
                 this.LogUI(ex.Message + " (CountCameras)");
 
-                using (StreamWriter w = File.AppendText(logFilePath))
-                {
-                    Log(ex.Message + " (CountCameras) ", w);
-                }
+                Log(ex.Message + " (CountCameras) ");
 
                 return -1;
             }
         }
 
+        /// <summary>
+        /// DllImport is needed for SendARP
+        /// SendARP is needed to get the Mac address
+        /// </summary>
         [DllImport("iphlpapi.dll", ExactSpelling = true)]
         public static extern int SendARP(int destIp, int srcIP, byte[] macAddr, ref int physicalAddrLen);
         private string GetMac()
         {
             try
             {
+                string macAddress;
+
                 IPAddress dst = IPAddress.Parse(MainWindow.hostIP); // the destination IP address
                 byte[] macAddr = new byte[6];
                 int macAddrLen = macAddr.Length;
 
-                if (SendARP(BitConverter.ToInt32(dst.GetAddressBytes(), 0), 0, macAddr, ref macAddrLen) != 0)
-                    Console.WriteLine("SendARP failed.");
+                if (MainWindow.SendARP(BitConverter.ToInt32(dst.GetAddressBytes(), 0), 0, macAddr, ref macAddrLen) != 0)
+                {
+                    Log("Send ARP failed. Cannot obtain MAC address.");
+                }
 
                 string[] str = new string[macAddrLen];
                 for (int i = 0; i < macAddrLen; i++)
+                {
                     str[i] = macAddr[i].ToString("x2");
+                }
 
-                return (string.Join(":", str).ToUpper());
+                macAddress = string.Join(":", str).ToUpper();
+
+                Log("The MAC address is : " + macAddress);
+
+                return macAddress;
             }
             catch (Exception ex)
             {
                 this.LogUI(ex.Message + " (GetMac)");
 
-                using (StreamWriter w = File.AppendText(logFilePath))
-                {
-                    Log(ex.Message + " (GetMac) ", w);
-                }
+                Log(ex.Message + " (GetMac) ");
 
                 return "Unknown";
             }
@@ -793,21 +790,27 @@ namespace SeeTecConnector
         {
             try
             {
-                return (string)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\SeeTec\Install", "LastSeeTecVersion", string.Empty);
+                string cayugaVersion;
+
+                cayugaVersion = (string)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\SeeTec\Install", "LastSeeTecVersion", string.Empty);
+
+                Log("Cayuga version is: " + cayugaVersion);
+
+                return cayugaVersion;
             }
             catch (Exception ex)
             {
                 this.LogUI(ex.Message + " (GetVersion)");
 
-                using (StreamWriter w = File.AppendText(logFilePath))
-                {
-                    Log(ex.Message + " (GetVersion) ", w);
-                }
+                Log(ex.Message + " (GetVersion) ");
 
                 return "Unknown";
             }
         }
 
+        /// <summary>
+        /// Get Videoguard web service client
+        /// </summary>
         private ReceiverServiceResponseClient GetClient()
         {
             if (client == null)
@@ -818,6 +821,9 @@ namespace SeeTecConnector
             return client;
         }
 
+        /// <summary>
+        /// Send alarm to Videoguard
+        /// </summary>
         private void SendAlarm(string alarmType, DateTime timestamp, string name, string details)
         {
             try
@@ -837,26 +843,31 @@ namespace SeeTecConnector
 
                 var requests = new List<AlarmRequest> { request };
                 var json = JsonConvert.SerializeObject(requests);
-                Console.WriteLine("Sending Alarm: " + json);
+
+                this.LogUI("Sending Alarm: " + json);
+                Log("Sending Alarm: " + json);
+
                 string s = client.SendAlarm(json);
-                Console.WriteLine("Alarm response: " + s);
+
+
+                this.LogUI("Alarm response: " + s);
+                Log("Alarm response: " + s);
             }
             catch (Exception ex)
             {
                 this.LogUI(ex.Message + " (SendAlarm)");
 
-                using (StreamWriter w = File.AppendText(logFilePath))
-                {
-                    Log(ex.Message + " (SendAlarm) ", w);
-                }
+                Log(ex.Message + " (SendAlarm) ");
             }
         }
 
+        /// <summary>
+        /// Send heartbeat to Videoguard
+        /// </summary>
         private void SendHeartBeat()
         {
             try
             {
-                File.AppendAllText(@"C:\Users\engin.aslan\Desktop\test.txt", "Heartbeat send");
                 var request = new HeartbeatRequest
                 {
                     SiteNo = installationName.Substring(0, 6),
@@ -866,22 +877,67 @@ namespace SeeTecConnector
 
                 var requests = new List<HeartbeatRequest> { request };
                 var json = JsonConvert.SerializeObject(requests);
-                Console.WriteLine("Sending HeartBeat: " + json);
+
+                this.LogUI("Sending HeartBeat: " + json);
+                Log("Sending HeartBeat: " + json);
+
                 string s = client.SendHeartBeat(json);
-                Console.WriteLine("HeartBeat response: " + s);
+
+                JObject jObj = JObject.Parse(s);
+                JToken jTok = jObj.First;
+
+                if (jTok.First.ToString() == "success")
+                {
+                    if (Dispatcher.CheckAccess())
+                    {
+                        labelStatusVideoguard.Content = "Connected";
+                        labelStatusVideoguard.Foreground = Brushes.Green;
+                    }
+                    else
+                    {
+                        Dispatcher.Invoke(() => { labelStatusVideoguard.Content = "Connected"; labelStatusVideoguard.Foreground = Brushes.Green; });
+                    }
+                }
+                else if (jTok.First.ToString() == "failure")
+                {
+                    if (Dispatcher.CheckAccess())
+                    {
+                        labelStatusVideoguard.Content = "Connected";
+                        labelStatusVideoguard.Foreground = Brushes.Green;
+                    }
+                    else
+                    {
+                        Dispatcher.Invoke(() => { labelStatusVideoguard.Content = "Connected"; labelStatusVideoguard.Foreground = Brushes.Green; });
+                    }
+                }
+                else
+                {
+                    if (Dispatcher.CheckAccess())
+                    {
+                        labelStatusVideoguard.Content = "Check logs";
+                        labelStatusVideoguard.Foreground = Brushes.Red;
+                    }
+                    else
+                    {
+                        Dispatcher.Invoke(() => { labelStatusVideoguard.Content = "Check logs"; labelStatusVideoguard.Foreground = Brushes.Red; });
+                    }
+                }
+
+                this.LogUI("HeartBeat response: " + s);
+                Log("HeartBeat response: " + s);
             }
             catch (Exception ex)
             {
                 this.LogUI(ex.Message + " (SendHeartBeat)");
 
-                using (StreamWriter w = File.AppendText(logFilePath))
-                {
-                    Log(ex.Message + " (SendHeartBeat) ", w);
-                }
+                Log(ex.Message + " (SendHeartBeat) ");
             }
         }
 
-        public void RecorderInfo()
+        /// <summary>
+        /// Send recorder info to Videoguard
+        /// </summary>
+        private void SendRecorderInfo()
         {
             try
             {
@@ -893,24 +949,31 @@ namespace SeeTecConnector
                     SerialNo = "605523", //Platzhalter
                     FirmwareVersion = MainWindow.cayugaVersion,
                     ModelName = "SeeTec Cayuga",
-                    NoOfChannel = CountCameras()
+                    NoOfChannel = this.CountCameras()
                 };
+
                 var requests = new List<RecorderInfoRequest> { request };
                 var json = JsonConvert.SerializeObject(requests);
-                Console.WriteLine("Recorder Information: " + json);
+
+                this.LogUI("Sending recorder Information: " + json);
+                Log("Sending recorder Information: " + json);
+
                 string s = client.SendRecorderInfo(json);
+
+                this.LogUI("Recorder info response: " + s);
+                Log("Recorder info response: " + s);
             }
             catch (Exception ex)
             {
-                this.LogUI(ex.Message + " (RecorderInfo)");
+                this.LogUI(ex.Message + " (SendRecorderInfo)");
 
-                using (StreamWriter w = File.AppendText(logFilePath))
-                {
-                    Log(ex.Message + " (RecorderInfo) ", w);
-                }
+                Log(ex.Message + " (SendRecorderInfo) ");
             }
         }
 
+        /// <summary>
+        /// Read configuration for the Connector from XML
+        /// </summary>
         private void ReadConfiguration()
         {
             if (File.Exists(MainWindow.configFilePath))
@@ -1005,15 +1068,22 @@ namespace SeeTecConnector
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-                return "xxx";
+                Log(ex.Message + " (GetRunningVersion) ");
+
+                return "Unknown";
             }
 
         }
 
-        public static void Log(string logMessage, TextWriter w)
+        public static void Log(string logMessage)
         {
-            w.WriteLine("{0} {1}", DateTime.Now.ToString(), logMessage);
+            lock (typeof(MainWindow))
+            {
+                using (StreamWriter w = File.AppendText(logFilePath))
+                {
+                    w.WriteLine("{0} {1}", DateTime.Now.ToString(), logMessage);
+                }
+            }
         }
 
         public void LogUI(string logMessega)
@@ -1031,7 +1101,30 @@ namespace SeeTecConnector
                 Dispatcher.Invoke(() => { listBox1.ScrollIntoView(listBox1.SelectedItem); });
             }
         }
-       
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show("Do you really want to close the application?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.No)
+            {
+                e.Cancel = true;
+            }
+            else
+            {
+                Log("Application is closed by user");
+
+                if (ConnectedInstallationID != Guid.Empty)
+                {
+                    SDKVideoManagerFactory.GetManager().CloseConnection(ConnectedInstallationID);
+                }
+
+                SDKVideoManagerFactory.GetManager().Dispose();
+                Application.Current.Shutdown();
+                Environment.Exit(0);
+            }
+
+
+        }
     }
 }
 

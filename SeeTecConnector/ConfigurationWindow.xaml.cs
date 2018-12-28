@@ -27,6 +27,9 @@ namespace SeeTecConnector
 
         }
 
+        /// <summary>
+        /// Save configuration button
+        /// </summary>
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
             if (File.Exists(MainWindow.configFilePath))
@@ -83,15 +86,15 @@ namespace SeeTecConnector
                 for (int i = 0; i < elemListHeartbeat.Count; i++)
                 {
                     elemListHeartbeat[i].InnerXml = MainWindow.configurationWindow.tbHeartbeat.Text;
-                    MainWindow.heartbeat = Convert.ToInt32(MainWindow.configurationWindow.tbHeartbeat.Text);
+                    MainWindow.heartbeat = Convert.ToInt32(MainWindow.configurationWindow.tbHeartbeat.Text) * 1000; // seconds in milliseconds
                 }
 
-                XmlNodeList elemListRecorderInfo = xmlDoc.GetElementsByTagName("RecorderInfo");
+                XmlNodeList elemListRecorderInfo = xmlDoc.GetElementsByTagName("SendRecorderInfo");
 
                 for (int i = 0; i < elemListRecorderInfo.Count; i++)
                 {
                     elemListRecorderInfo[i].InnerXml = MainWindow.configurationWindow.tbRecorderInfo.Text;
-                    MainWindow.recorderInfo = Convert.ToInt32(MainWindow.configurationWindow.tbRecorderInfo.Text);
+                    MainWindow.recorderInfo = Convert.ToInt32(MainWindow.configurationWindow.tbRecorderInfo.Text) * 1000; // seconds in milliseconds
                 }
 
                 xmlDoc.Save(MainWindow.configFilePath);
@@ -100,6 +103,9 @@ namespace SeeTecConnector
             Close();
         }
 
+        /// <summary>
+        /// Cancel configuration button
+        /// </summary>
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             Close();
