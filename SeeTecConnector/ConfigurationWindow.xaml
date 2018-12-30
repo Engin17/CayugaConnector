@@ -27,12 +27,14 @@
         <Label Content="s" HorizontalAlignment="Left" Margin="516,182,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.449,-0.169"/>
         <Label Content="s" HorizontalAlignment="Left" Margin="516,147,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.36,0.801"/>
 
-        <TextBox Name="tbHostIP" HorizontalAlignment="Left" Height="23" Margin="123,46,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox Name="tbHostIP" HorizontalAlignment="Left" Height="23" Margin="123,42,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <TextBox Name="tbHostPort" HorizontalAlignment="Left" Height="23" Margin="124,78,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <TextBox Name="tbUser" HorizontalAlignment="Left" Height="23" Margin="123,114,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <TextBox Name="tbPassword" HorizontalAlignment="Left" Height="23" Margin="123,148,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        
+        <PasswordBox Name="pbPassword" HorizontalAlignment="Left" Height="23" Margin="123,148,0,0" VerticalAlignment="Top" Width="120"/>
+        
         <TextBox Name="tbProfile" HorizontalAlignment="Left" Height="23" Margin="124,182,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <TextBox Name="tbINR" HorizontalAlignment="Left" Height="23" Margin="391,46,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox Name="tbINR" HorizontalAlignment="Left" Height="23" Margin="391,42,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <TextBox Name="tbHeartbeat" HorizontalAlignment="Left" Height="23" Margin="391,148,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <TextBox Name="tbRecorderInfo" HorizontalAlignment="Left" Height="23" Margin="391,182,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
 

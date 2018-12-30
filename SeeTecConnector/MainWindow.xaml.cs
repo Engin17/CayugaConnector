@@ -98,7 +98,7 @@ namespace SeeTecConnector
         public static int heartbeat;
         public static int recorderInfo;
 
-        static byte[] bytes = ASCIIEncoding.ASCII.GetBytes("ZeroCool"); // Needed for Password security
+        static byte[] bytes = ASCIIEncoding.ASCII.GetBytes("CryptKey"); // Needed for Password security (Length should be 8)
 
 
         public MainWindow()
@@ -994,16 +994,16 @@ namespace SeeTecConnector
                     configurationWindow.tbUser.Text = user;
                 }
 
-                //XmlNodeList elemListPassword = xmlDoc.GetElementsByTagName("Password");
+                XmlNodeList elemListPassword = xmlDoc.GetElementsByTagName("Password");
 
-                //for (int i = 0; i < elemListPassword.Count; i++)
-                //{
-                //    string password;
-                //    password = elemListPassword[i].InnerXml;
-                //    configurationWindow.tbPassword.Text = password;
-                //}
+                for (int i = 0; i < elemListPassword.Count; i++)
+                {
+                    string password;
+                    password = elemListPassword[i].InnerXml;
 
-                configurationWindow.tbPassword.Text = "********";
+                    // Decrypt password from XML file
+                    configurationWindow.pbPassword.Password = MainWindow.Decrypt(password);
+                }
 
                 XmlNodeList elemListProfile = xmlDoc.GetElementsByTagName("Profile");
 
