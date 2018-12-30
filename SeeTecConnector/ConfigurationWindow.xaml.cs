@@ -63,7 +63,8 @@ namespace SeeTecConnector
 
                 for (int i = 0; i < elemListPassword.Count; i++)
                 {
-                    elemListPassword[i].InnerXml = MainWindow.configurationWindow.tbPassword.Text;
+                    // Encrypt password before write it to the xml
+                    elemListPassword[i].InnerXml = MainWindow.Encrypt(MainWindow.configurationWindow.tbPassword.Text);
                 }
 
                 XmlNodeList elemListProfile = xmlDoc.GetElementsByTagName("Profile");

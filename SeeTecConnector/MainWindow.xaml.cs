@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -96,6 +97,8 @@ namespace SeeTecConnector
         public static string inr;
         public static int heartbeat;
         public static int recorderInfo;
+
+        static byte[] bytes = ASCIIEncoding.ASCII.GetBytes("ZeroCool"); // Needed for Password security
 
 
         public MainWindow()
@@ -249,9 +252,6 @@ namespace SeeTecConnector
         {
             try
             {
-                Log("------------------------------------------------------------------------------");
-                Log("Start SeeTec Connector");
-
                 if (Dispatcher.CheckAccess())
                 {
                     tblockAssembly.Text = this.GetRunningVersion();
@@ -261,27 +261,11 @@ namespace SeeTecConnector
                     Dispatcher.Invoke(() => { tblockAssembly.Text = this.GetRunningVersion(); });
                 }
 
-                // Check if the log directory exists. If not create directory
-                if (!Directory.Exists(logFolderPath))
-                {
-                    try
-                    {
-                        Directory.CreateDirectory(logFolderPath);
+                // Check if the log directory and log file exists. If not create directory and file.
+                MainWindow.CreateLogFolderFile();
 
-                        File.Create(logFilePath);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log(ex.Message + " (PrepareStart)");
-                    }
-                }
-                else
-                {
-                    if (!File.Exists(logFilePath))
-                    {
-                        File.Create(logFilePath);
-                    }
-                }
+                Log("------------------------------------------------------------------------------");
+                Log("Start SeeTec Connector");
 
                 // Check if connector xml configuration file exists
                 if (File.Exists(configFilePath))
@@ -327,7 +311,8 @@ namespace SeeTecConnector
                         string password;
                         password = elemListPassword[i].InnerXml;
 
-                        MainWindow.password = password;
+                        // Decrypt password from XML to use it in the application
+                        MainWindow.password = MainWindow.Decrypt(password);
                     }
 
                     XmlNodeList elemListProfile = xmlDoc.GetElementsByTagName("Profile");
@@ -1009,14 +994,16 @@ namespace SeeTecConnector
                     configurationWindow.tbUser.Text = user;
                 }
 
-                XmlNodeList elemListPassword = xmlDoc.GetElementsByTagName("Password");
+                //XmlNodeList elemListPassword = xmlDoc.GetElementsByTagName("Password");
 
-                for (int i = 0; i < elemListPassword.Count; i++)
-                {
-                    string password;
-                    password = elemListPassword[i].InnerXml;
-                    configurationWindow.tbPassword.Text = password;
-                }
+                //for (int i = 0; i < elemListPassword.Count; i++)
+                //{
+                //    string password;
+                //    password = elemListPassword[i].InnerXml;
+                //    configurationWindow.tbPassword.Text = password;
+                //}
+
+                configurationWindow.tbPassword.Text = "********";
 
                 XmlNodeList elemListProfile = xmlDoc.GetElementsByTagName("Profile");
 
@@ -1075,15 +1062,116 @@ namespace SeeTecConnector
 
         }
 
-        public static void Log(string logMessage)
+        /// <summary>
+        /// Encrypt Password for XML
+        /// </summary>
+        public static string Encrypt(string originalString)
+        {
+            try
+            {
+                if (String.IsNullOrEmpty(originalString))
+                {
+                    throw new ArgumentNullException("The string which needs to be encrypted can not be null.");
+                }
+
+                DESCryptoServiceProvider cryptoProvider = new DESCryptoServiceProvider();
+                MemoryStream memoryStream = new MemoryStream();
+                CryptoStream cryptoStream = new CryptoStream(memoryStream, cryptoProvider.CreateEncryptor(bytes, bytes), CryptoStreamMode.Write);
+
+                StreamWriter writer = new StreamWriter(cryptoStream);
+                writer.Write(originalString);
+                writer.Flush();
+                cryptoStream.FlushFinalBlock();
+                writer.Flush();
+
+                return Convert.ToBase64String(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+            }
+            catch (Exception ex)
+            {
+                Log(ex.Message + " (Encrypt) ");
+                return "";
+            }
+        }
+
+        /// <summary>
+        /// Decrypt Password for SeeTecConnector
+        /// </summary>
+        public static string Decrypt(string cryptedString)
+        {
+            try
+            {
+                if (String.IsNullOrEmpty(cryptedString))
+                {
+                    throw new ArgumentNullException("The string which needs to be decrypted can not be null.");
+                }
+
+                DESCryptoServiceProvider cryptoProvider = new DESCryptoServiceProvider();
+                MemoryStream memoryStream = new MemoryStream(Convert.FromBase64String(cryptedString));
+                CryptoStream cryptoStream = new CryptoStream(memoryStream, cryptoProvider.CreateDecryptor(bytes, bytes), CryptoStreamMode.Read);
+                StreamReader reader = new StreamReader(cryptoStream);
+
+                return reader.ReadToEnd();
+            }
+            catch (Exception ex)
+            {
+                Log(ex.Message + " (Decrypt) ");
+                return "";
+            }
+        }
+
+        private static void CreateLogFolderFile()
         {
             lock (typeof(MainWindow))
             {
-                using (StreamWriter w = File.AppendText(logFilePath))
+                if (!Directory.Exists(logFolderPath))
                 {
-                    w.WriteLine("{0} {1}", DateTime.Now.ToString(), logMessage);
+                    try
+                    {
+                        Directory.CreateDirectory(logFolderPath);
+
+                        // Create a file to write to.
+                        using (StreamWriter sw = File.CreateText(logFilePath))
+                        {
+                            sw.WriteLine("{0} {1}", DateTime.Now.ToString(), "Log file successfully created");
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        throw;
+                    }
+                }
+                else
+                {
+                    if (!File.Exists(logFilePath))
+                    {
+                        // Create a file to write to.
+                        using (StreamWriter sw = File.CreateText(logFilePath))
+                        {
+                            sw.WriteLine("{0} {1}", DateTime.Now.ToString(), "Log file successfully created");
+                        }
+                    }
                 }
             }
+        }
+
+        public static void Log(string logMessage)
+        {
+            try
+            {
+                lock (typeof(MainWindow))
+                {
+                    using (StreamWriter sw = File.AppendText(logFilePath))
+                    {
+                        sw.WriteLine("{0} {1}", DateTime.Now.ToString(), logMessage);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+
         }
 
         public void LogUI(string logMessega)
