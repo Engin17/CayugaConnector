@@ -84,7 +84,7 @@ namespace SeeTecConnector
         private static ReceiverServiceResponseClient client = null;
         private static string installationName;
         private static HashSet<long> NotReachableCameras = new HashSet<long>();
-        private static HashSet<long> DMwithFailure = new HashSet<long>();
+        private static HashSet<long> DMandMDSwithFailure = new HashSet<long>();
         private static bool isRecordingServerOfflineAlreadyDetected;
 
         private static bool isConnectedToSeeTec = false;
@@ -629,26 +629,39 @@ namespace SeeTecConnector
                     MainWindow.NotReachableCameras.Remove(sourceID);
 
                 }
-                else if (entity.EntityType == SDKEntityType.RuntimeDM && entity.Status == 0 && DMwithFailure.Contains(sourceID)) //only when DM was offline at first
+                else if (entity.EntityType == SDKEntityType.RuntimeDM && entity.Status == 0 && DMandMDSwithFailure.Contains(sourceID)) //only when DM was offline at first
                 {
                     MainWindow.isRecordingServerOfflineAlreadyDetected = false;
-                    this.SendAlarm("5", timestamp, entity.Name, "Recording Server Online");
-                    MainWindow.DMwithFailure.Remove(sourceID);
+                    this.SendAlarm("5", timestamp, entity.Name, "Recording Server Online (DM)");
+                    MainWindow.DMandMDSwithFailure.Remove(sourceID);
+                }
+                else if (entity.EntityType == SDKEntityType.RuntimeMDB && entity.Status == 0 && DMandMDSwithFailure.Contains(sourceID)) //only when DM was offline at first
+                {
+                    MainWindow.isRecordingServerOfflineAlreadyDetected = false;
+                    this.SendAlarm("5", timestamp, entity.Name, "Recording Server Online (MDS)");
+                    MainWindow.DMandMDSwithFailure.Remove(sourceID);
                 }
             }
             else if (evt.EventType == SDKEventType.MDBZoneAlmostFull)
             {
                 this.SendAlarm("3", timestamp, entity.Name, "MDS zone is almost full");
             }
-            else if (evt.EventType == SDKEventType.REInvalidStatus || evt.EventType == SDKEventType.CMCannotStart || evt.EventType == SDKEventType.EntityDeregistered)
+            else if (evt.EventType == SDKEventType.REInvalidStatus || evt.EventType == SDKEventType.CMCannotStart || evt.EventType == SDKEventType.EntityDeregistered || evt.EventType == SDKEventType.MDBCannotStartMDS)
             {
                 if (entity.EntityType == SDKEntityType.RuntimeDM && !isRecordingServerOfflineAlreadyDetected)
                 {
                     MainWindow.isRecordingServerOfflineAlreadyDetected = true;
-                    this.SendAlarm("6", timestamp, entity.Name, "Recording Server Offline");
-                    MainWindow.DMwithFailure.Add(sourceID);
+                    this.SendAlarm("6", timestamp, entity.Name, "Recording Server Offline (DM)");
+                    MainWindow.DMandMDSwithFailure.Add(sourceID);
+                }
+                else if (entity.EntityType == SDKEntityType.RuntimeMDB && !isRecordingServerOfflineAlreadyDetected)
+                {
+                    MainWindow.isRecordingServerOfflineAlreadyDetected = true;
+                    this.SendAlarm("6", timestamp, entity.Name, "Recording Server Offline (MDS)");
+                    MainWindow.DMandMDSwithFailure.Add(sourceID);
                 }
             }
+            
         }
 
         /// <summary>
