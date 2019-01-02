@@ -68,6 +68,8 @@ namespace SeeTecConnector
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
         public static ConfigurationWindow configurationWindow;
         private static StartWindow startWindow;
 
@@ -264,8 +266,8 @@ namespace SeeTecConnector
                 // Check if the log directory and log file exists. If not create directory and file.
                 MainWindow.CreateLogFolderFile();
 
-                Log("------------------------------------------------------------------------------");
-                Log("Start SeeTec Connector");
+                logger.Info("------------------------------------------------------------------------------");
+                logger.Info("Start SeeTec Connector");
 
                 // Check if connector xml configuration file exists
                 if (File.Exists(configFilePath))
@@ -354,7 +356,7 @@ namespace SeeTecConnector
 
                         MainWindow.recorderInfo = Convert.ToInt32(recorderInfo) * 1000; // seconds in milliseconds
                     }
-                    Log("Connector configuration successfully loaded");
+                    logger.Info("Connector configuration successfully loaded");
                 }
 
                 // Create connector xml configuration file because its not created yet or its deleted
@@ -381,7 +383,7 @@ namespace SeeTecConnector
                         }
                         catch (Exception ex)
                         {
-                            Log(ex.Message + " (PrepareStart)");
+                            logger.Error(ex.Message + " (PrepareStart)");
                         }
                     }
 
@@ -433,12 +435,12 @@ namespace SeeTecConnector
 
                         writer.WriteEndDocument();
                     }
-                    Log("Connector configuration successfully loaded");
+                    logger.Info("Connector configuration successfully loaded");
                 }
             }
             catch (Exception ex)
             {
-                Log(ex.Message + " (PrepareStart) ");
+                logger.Error(ex.Message + " (PrepareStart) ");
             }
         }
 
@@ -451,7 +453,7 @@ namespace SeeTecConnector
         {
             try
             {
-                Log("Connecting to Cayuga server.");
+                logger.Info("Connecting to Cayuga server.");
 
                 //Login
                 SDKConnectionInfo connectionInfo = new SDKConnectionInfo();
@@ -503,7 +505,7 @@ namespace SeeTecConnector
 
                     this.LogUI("Successfully connected to Cayuga server.");
 
-                    Log("Successfully connected to Cayuga server.");
+                    logger.Info("Successfully connected to Cayuga server.");
                 }
                 else
                 {
@@ -532,15 +534,15 @@ namespace SeeTecConnector
                     this.LogUI("Cannot connect to Cayuga server.Problem: " + MainWindow.InstallationIDResult.Result);
                     this.LogUI("Connection problem. Check Connector configuration and if the Cayuga Server is running.");
 
-                    Log("Cannot connect to Cayuga server. Problem: " + MainWindow.InstallationIDResult.Result);
-                    Log("Connection problem. Check Connector configuration and if the Cayuga Server is running.");
+                    logger.Warn("Cannot connect to Cayuga server. Problem: " + MainWindow.InstallationIDResult.Result);
+                    logger.Warn("Connection problem. Check Connector configuration and if the Cayuga Server is running.");
                 }
             }
             catch (Exception ex)
             {
                 this.LogUI(ex.Message + " (ConnectToCayuga)");
 
-                Log(ex.Message + " (ConnectToCayuga)");
+                logger.Error(ex.Message + " (ConnectToCayuga)");
             }
         }
 
@@ -553,7 +555,7 @@ namespace SeeTecConnector
 
             this.LogUI("Disconnected to SeeTec. Waiting until Core is running again...");
 
-            Log("Disconnected to SeeTec. Waiting until Core is running again...");
+            logger.Warn("Disconnected to SeeTec. Waiting until Core is running again...");
 
             if (Dispatcher.CheckAccess())
             {
@@ -577,7 +579,7 @@ namespace SeeTecConnector
 
             this.LogUI("Reconnected to SeeTec.");
 
-            Log("Reconnected to SeeTec.");
+            logger.Info("Reconnected to SeeTec.");
 
             if (Dispatcher.CheckAccess())
             {
@@ -714,7 +716,7 @@ namespace SeeTecConnector
                         searchStack.Push(videoManager.GetEntity(currentEntity.InstallationID, childID));
                     }
                 }
-                Log("Camera number in the system is: " + videoSources.Count);
+                logger.Info("Camera number in the system is: " + videoSources.Count);
 
                 return videoSources.Count;
             }
@@ -722,7 +724,7 @@ namespace SeeTecConnector
             {
                 this.LogUI(ex.Message + " (CountCameras)");
 
-                Log(ex.Message + " (CountCameras) ");
+                logger.Error(ex.Message + " (CountCameras) ");
 
                 return -1;
             }
@@ -746,7 +748,7 @@ namespace SeeTecConnector
 
                 if (MainWindow.SendARP(BitConverter.ToInt32(dst.GetAddressBytes(), 0), 0, macAddr, ref macAddrLen) != 0)
                 {
-                    Log("Send ARP failed. Cannot obtain MAC address.");
+                    logger.Warn("Send ARP failed. Cannot obtain MAC address.");
                 }
 
                 string[] str = new string[macAddrLen];
@@ -757,7 +759,7 @@ namespace SeeTecConnector
 
                 macAddress = string.Join(":", str).ToUpper();
 
-                Log("The MAC address is : " + macAddress);
+                logger.Info("The MAC address is : " + macAddress);
 
                 return macAddress;
             }
@@ -765,7 +767,7 @@ namespace SeeTecConnector
             {
                 this.LogUI(ex.Message + " (GetMac)");
 
-                Log(ex.Message + " (GetMac) ");
+                logger.Error(ex.Message + " (GetMac) ");
 
                 return "Unknown";
             }
@@ -779,7 +781,7 @@ namespace SeeTecConnector
 
                 cayugaVersion = (string)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\SeeTec\Install", "LastSeeTecVersion", string.Empty);
 
-                Log("Cayuga version is: " + cayugaVersion);
+                logger.Info("Cayuga version is: " + cayugaVersion);
 
                 return cayugaVersion;
             }
@@ -787,7 +789,7 @@ namespace SeeTecConnector
             {
                 this.LogUI(ex.Message + " (GetVersion)");
 
-                Log(ex.Message + " (GetVersion) ");
+                logger.Error(ex.Message + " (GetVersion) ");
 
                 return "Unknown";
             }
@@ -830,19 +832,19 @@ namespace SeeTecConnector
                 var json = JsonConvert.SerializeObject(requests);
 
                 this.LogUI("Sending Alarm: " + json);
-                Log("Sending Alarm: " + json);
+                logger.Info("Sending Alarm: " + json);
 
                 string s = client.SendAlarm(json);
 
 
                 this.LogUI("Alarm response: " + s);
-                Log("Alarm response: " + s);
+                logger.Info("Alarm response: " + s);
             }
             catch (Exception ex)
             {
                 this.LogUI(ex.Message + " (SendAlarm)");
 
-                Log(ex.Message + " (SendAlarm) ");
+                logger.Error(ex.Message + " (SendAlarm) ");
             }
         }
 
@@ -864,7 +866,7 @@ namespace SeeTecConnector
                 var json = JsonConvert.SerializeObject(requests);
 
                 this.LogUI("Sending HeartBeat: " + json);
-                Log("Sending HeartBeat: " + json);
+                logger.Info("Sending HeartBeat: " + json);
 
                 string s = client.SendHeartBeat(json);
 
@@ -909,13 +911,13 @@ namespace SeeTecConnector
                 }
 
                 this.LogUI("HeartBeat response: " + s);
-                Log("HeartBeat response: " + s);
+                logger.Info("HeartBeat response: " + s);
             }
             catch (Exception ex)
             {
                 this.LogUI(ex.Message + " (SendHeartBeat)");
 
-                Log(ex.Message + " (SendHeartBeat) ");
+                logger.Error(ex.Message + " (SendHeartBeat) ");
             }
         }
 
@@ -941,18 +943,18 @@ namespace SeeTecConnector
                 var json = JsonConvert.SerializeObject(requests);
 
                 this.LogUI("Sending recorder Information: " + json);
-                Log("Sending recorder Information: " + json);
+                logger.Info("Sending recorder Information: " + json);
 
                 string s = client.SendRecorderInfo(json);
 
                 this.LogUI("Recorder info response: " + s);
-                Log("Recorder info response: " + s);
+                logger.Info("Recorder info response: " + s);
             }
             catch (Exception ex)
             {
                 this.LogUI(ex.Message + " (SendRecorderInfo)");
 
-                Log(ex.Message + " (SendRecorderInfo) ");
+                logger.Error(ex.Message + " (SendRecorderInfo) ");
             }
         }
 
@@ -1055,7 +1057,7 @@ namespace SeeTecConnector
             }
             catch (Exception ex)
             {
-                Log(ex.Message + " (GetRunningVersion) ");
+                logger.Error(ex.Message + " (GetRunningVersion) ");
 
                 return "Unknown";
             }
@@ -1088,7 +1090,7 @@ namespace SeeTecConnector
             }
             catch (Exception ex)
             {
-                Log(ex.Message + " (Encrypt) ");
+                logger.Error(ex.Message + " (Encrypt) ");
                 return "";
             }
         }
@@ -1114,7 +1116,7 @@ namespace SeeTecConnector
             }
             catch (Exception ex)
             {
-                Log(ex.Message + " (Decrypt) ");
+                logger.Error(ex.Message + " (Decrypt) ");
                 return "";
             }
         }
@@ -1154,26 +1156,6 @@ namespace SeeTecConnector
             }
         }
 
-        public static void Log(string logMessage)
-        {
-            try
-            {
-                lock (typeof(MainWindow))
-                {
-                    using (StreamWriter sw = File.AppendText(logFilePath))
-                    {
-                        sw.WriteLine("{0} {1}", DateTime.Now.ToString(), logMessage);
-                    }
-                }
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-
-        }
-
         public void LogUI(string logMessega)
         {
             if (Dispatcher.CheckAccess())
@@ -1199,7 +1181,7 @@ namespace SeeTecConnector
             }
             else
             {
-                Log("Application is closed by user");
+                logger.Info("Application is closed by user");
 
                 if (ConnectedInstallationID != Guid.Empty)
                 {
