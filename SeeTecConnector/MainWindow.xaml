@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SeeTecConnector"
         mc:Ignorable="d"
-        Title="SeeTec Connector" Height="500" Width="800" WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" Closing="Window_Closing">
+        Title="SeeTec Connector" Height="500" Width="800" WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" Closing="Window_Closing" Icon="Resources\Connector.ico">
     <Grid Background="LightGray">
 
         <Menu Margin="0,0,-0.4,431.4" Background="Gray" Foreground="White">

@@ -76,7 +76,7 @@ namespace SeeTecConnector
         private static string applicationPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
         private static string configFolderPath = Path.Combine(applicationPath, "Configuration");
         public static string configFilePath = Path.Combine(configFolderPath, "Configuration.xml");
-        public static string logFolderPath = Path.Combine(applicationPath, "Log");
+        public static string logFolderPath = Path.Combine(applicationPath, "Logs");
         public static string logFilePath = Path.Combine(logFolderPath, "Log.txt");
 
         private static Guid ConnectedInstallationID;
@@ -262,9 +262,6 @@ namespace SeeTecConnector
                 {
                     Dispatcher.Invoke(() => { tblockAssembly.Text = this.GetRunningVersion(); });
                 }
-
-                // Check if the log directory and log file exists. If not create directory and file.
-                MainWindow.CreateLogFolderFile();
 
                 logger.Info("------------------------------------------------------------------------------");
                 logger.Info("Start SeeTec Connector");
@@ -1118,41 +1115,6 @@ namespace SeeTecConnector
             {
                 logger.Error(ex.Message + " (Decrypt) ");
                 return "";
-            }
-        }
-
-        private static void CreateLogFolderFile()
-        {
-            lock (typeof(MainWindow))
-            {
-                if (!Directory.Exists(logFolderPath))
-                {
-                    try
-                    {
-                        Directory.CreateDirectory(logFolderPath);
-
-                        // Create a file to write to.
-                        using (StreamWriter sw = File.CreateText(logFilePath))
-                        {
-                            sw.WriteLine("{0} {1}", DateTime.Now.ToString(), "Log file successfully created");
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        throw;
-                    }
-                }
-                else
-                {
-                    if (!File.Exists(logFilePath))
-                    {
-                        // Create a file to write to.
-                        using (StreamWriter sw = File.CreateText(logFilePath))
-                        {
-                            sw.WriteLine("{0} {1}", DateTime.Now.ToString(), "Log file successfully created");
-                        }
-                    }
-                }
             }
         }
 
