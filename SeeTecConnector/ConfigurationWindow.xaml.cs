@@ -81,7 +81,7 @@ namespace SeeTecConnector
                     elemListINR[i].InnerXml = MainWindow.configurationWindow.tbINR.Text;
                     MainWindow.inr = MainWindow.configurationWindow.tbINR.Text;
                 }
-            
+
                 XmlNodeList elemListHeartbeat = xmlDoc.GetElementsByTagName("Heartbeat");
 
                 for (int i = 0; i < elemListHeartbeat.Count; i++)
@@ -99,6 +99,11 @@ namespace SeeTecConnector
                 }
 
                 xmlDoc.Save(MainWindow.configFilePath);
+
+                if (MainWindow.isConnectedToSeeTec)
+                {
+                    MessageBoxResult result = MessageBox.Show("Please restart application to take effect.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
             }
 
             Close();
