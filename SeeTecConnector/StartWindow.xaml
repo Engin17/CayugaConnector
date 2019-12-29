@@ -1,14 +1,14 @@
-﻿<Window x:Class="SeeTecConnector.StartWindow"
+﻿<Window x:Class="CayugaConnector.StartWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SeeTecConnector"
+        xmlns:local="clr-namespace:CayugaConnector"
         mc:Ignorable="d"
-        Title="SeeTec Connector" Height="300" Width="500" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Background="LightGray">
+        Title="Cayuga Connector" Height="300" Width="500" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Background="LightGray">
     
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-        <Label Content="Connecting to SeeTec Connector. Please wait..." HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="18" FontFamily="Calibri" FontWeight="Bold"/>
+        <Label Content="Connecting to Cayuga Connector. Please wait..." HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="18" FontFamily="Calibri" FontWeight="Bold"/>
     </StackPanel>
     
 </Window>

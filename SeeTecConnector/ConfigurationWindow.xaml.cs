@@ -1,20 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.Xml;
 
-namespace SeeTecConnector
+namespace CayugaConnector
 {
     /// <summary>
     /// Interaction logic for Configuration.xaml
@@ -24,7 +13,6 @@ namespace SeeTecConnector
         public ConfigurationWindow()
         {
             InitializeComponent();
-
         }
 
         /// <summary>
@@ -39,70 +27,67 @@ namespace SeeTecConnector
                 xmlDoc.Load(MainWindow.configFilePath);
 
                 XmlNodeList elemListIPHost = xmlDoc.GetElementsByTagName("HostIP");
-
-                for (int i = 0; i < elemListIPHost.Count; i++)
-                {
-                    elemListIPHost[i].InnerXml = MainWindow.configurationWindow.tbHostIP.Text;
-                }
+                elemListIPHost[0].InnerXml = MainWindow.configurationWindow.tbHostIP.Text;
 
                 XmlNodeList elemListPortHost = xmlDoc.GetElementsByTagName("HostPort");
-
-                for (int i = 0; i < elemListPortHost.Count; i++)
-                {
-                    elemListPortHost[i].InnerXml = MainWindow.configurationWindow.tbHostPort.Text;
-                }
+                elemListPortHost[0].InnerXml = MainWindow.configurationWindow.tbHostPort.Text;
 
                 XmlNodeList elemListUser = xmlDoc.GetElementsByTagName("User");
-
-                for (int i = 0; i < elemListUser.Count; i++)
-                {
-                    elemListUser[i].InnerXml = MainWindow.configurationWindow.tbUser.Text;
-                }
+                elemListUser[0].InnerXml = MainWindow.configurationWindow.tbUser.Text;
 
                 XmlNodeList elemListPassword = xmlDoc.GetElementsByTagName("Password");
-
-                for (int i = 0; i < elemListPassword.Count; i++)
-                {
-                    // Encrypt password before write it to the xml
-                    elemListPassword[i].InnerXml = MainWindow.Encrypt(MainWindow.configurationWindow.pbPassword.Password);
-                }
+                elemListPassword[0].InnerXml = MainWindow.Encrypt(MainWindow.configurationWindow.pbPassword.Password);
 
                 XmlNodeList elemListProfile = xmlDoc.GetElementsByTagName("Profile");
-
-                for (int i = 0; i < elemListProfile.Count; i++)
-                {
-                    elemListProfile[i].InnerXml = MainWindow.configurationWindow.tbProfile.Text;
-                }
+                elemListProfile[0].InnerXml = MainWindow.configurationWindow.tbProfile.Text;
 
                 XmlNodeList elemListINR = xmlDoc.GetElementsByTagName("INR");
-
-                for (int i = 0; i < elemListINR.Count; i++)
-                {
-                    elemListINR[i].InnerXml = MainWindow.configurationWindow.tbINR.Text;
-                    MainWindow.inr = MainWindow.configurationWindow.tbINR.Text;
-                }
+                elemListINR[0].InnerXml = MainWindow.configurationWindow.tbINR.Text;
 
                 XmlNodeList elemListHeartbeat = xmlDoc.GetElementsByTagName("Heartbeat");
 
-                for (int i = 0; i < elemListHeartbeat.Count; i++)
+                try
                 {
-                    elemListHeartbeat[i].InnerXml = MainWindow.configurationWindow.tbHeartbeat.Text;
+                    elemListHeartbeat[0].InnerXml = MainWindow.configurationWindow.tbHeartbeat.Text;
                     MainWindow.heartbeat = Convert.ToInt32(MainWindow.configurationWindow.tbHeartbeat.Text) * 1000; // seconds in milliseconds
                 }
-
-                XmlNodeList elemListRecorderInfo = xmlDoc.GetElementsByTagName("SendRecorderInfo");
-
-                for (int i = 0; i < elemListRecorderInfo.Count; i++)
+                catch (OverflowException ex)
                 {
-                    elemListRecorderInfo[i].InnerXml = MainWindow.configurationWindow.tbRecorderInfo.Text;
+                    MainWindow.logger.Error(ex.Message);
+                    MainWindow.logger.Warn("Wrong value for Hearbeat");
+                    MainWindow.logger.Warn("Set maximum value for Heartbeat");
+
+                    elemListHeartbeat[0].InnerXml = (int.MaxValue / 1000).ToString();
+                    MainWindow.heartbeat = int.MaxValue / 1000;
+                }
+
+                XmlNodeList elemListRecorderInfo = xmlDoc.GetElementsByTagName("RecorderInfo");
+
+                try
+                {
+                    elemListRecorderInfo[0].InnerXml = MainWindow.configurationWindow.tbRecorderInfo.Text;
                     MainWindow.recorderInfo = Convert.ToInt32(MainWindow.configurationWindow.tbRecorderInfo.Text) * 1000; // seconds in milliseconds
+
+                }
+                catch (OverflowException ex)
+                {
+                    MainWindow.logger.Error(ex.Message);
+                    MainWindow.logger.Warn("Wrong value for Recorder Info");
+                    MainWindow.logger.Warn("Set maximum value for Recorder Info");
+
+                    elemListRecorderInfo[0].InnerXml = (int.MaxValue / 1000).ToString();
+                    MainWindow.recorderInfo = int.MaxValue / 1000;
                 }
 
                 xmlDoc.Save(MainWindow.configFilePath);
 
-                if (MainWindow.isConnectedToSeeTec)
+                if (MainWindow.isConnectedToCayuga)
                 {
-                    MessageBoxResult result = MessageBox.Show("Please restart application to take effect.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("Configuration successfully saved. \nPlease restart application to take effect.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Configuration successfully saved. \nPlease click on reconnect (Connect to Cayuga server).", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
 

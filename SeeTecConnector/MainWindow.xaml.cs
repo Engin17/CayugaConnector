@@ -2,33 +2,24 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SeeTec.SDK;
-using SeeTecConnector.ServiceReference1;
+using CayugaConnector.ServiceReference1;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Xml;
 using Path = System.IO.Path;
 
-namespace SeeTecConnector
+namespace CayugaConnector
 {
     #region Web service classes
 
@@ -86,7 +77,7 @@ namespace SeeTecConnector
         private static HashSet<long> NotReachableCameras = new HashSet<long>();
         private static HashSet<long> DMandMDSwithFailure = new HashSet<long>();
 
-        public static bool isConnectedToSeeTec = false;
+        public static bool isConnectedToCayuga = false;
         private static string cayugaVersion = "Unknown";
         private static string macAddress = "Unknown";
 
@@ -128,23 +119,31 @@ namespace SeeTecConnector
         {
             if (File.Exists(MainWindow.configFilePath))
             {
-                // Load the configuration xml and read out the connection status to SeeTec 
-                XmlDocument xmlDoc = new XmlDocument();
-                xmlDoc.Load(MainWindow.configFilePath);
-
-                XmlNodeList elemListIPHost = xmlDoc.GetElementsByTagName("HostIP");
-
-                for (int i = 0; i < elemListIPHost.Count; i++)
+                try
                 {
+                    // Load the configuration xml and read out the connection status of Cayuga 
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.Load(MainWindow.configFilePath);
+
+                    XmlNodeList elemListIPHost = xmlDoc.GetElementsByTagName("HostIP");
+
                     if (Dispatcher.CheckAccess())
                     {
-                        labelConnection.Content = elemListIPHost[i].InnerXml;
+                        labelConnection.Content = elemListIPHost[0].InnerXml;
                     }
                     else
                     {
-                        Dispatcher.Invoke(() => { labelConnection.Content = elemListIPHost[i].InnerXml; });
+                        Dispatcher.Invoke(() => { labelConnection.Content = elemListIPHost[0].InnerXml; });
                     }
                 }
+                catch (Exception ex)
+                {
+                    logger.Error(ex.Message);
+                }
+            }
+            else
+            {
+                logger.Error("No configuration file found");
             }
         }
 
@@ -172,13 +171,13 @@ namespace SeeTecConnector
         {
             MainWindow.configurationWindow = new ConfigurationWindow();
 
-            this.ReadConfiguration();
+            this.ReadConfiguration(true);
 
             MainWindow.configurationWindow.ShowDialog();
         }
 
         /// <summary>
-        /// Close SeeTec Connector
+        /// Close Cayuga Connector
         /// </summary>
         private void MenuItemCloseMainWindow_Click_1(object sender, RoutedEventArgs e)
         {
@@ -218,7 +217,7 @@ namespace SeeTecConnector
             {
                 while (true)
                 {
-                    if (MainWindow.isConnectedToSeeTec)
+                    if (MainWindow.isConnectedToCayuga)
                     {
                         SendHeartBeat();
                     }
@@ -241,8 +240,9 @@ namespace SeeTecConnector
                     Process.Start(MainWindow.logFolderPath);
                 }
             }
-            catch (Win32Exception)
+            catch (Win32Exception ex)
             {
+                logger.Error(ex.Message);
             }
         }
 
@@ -263,180 +263,112 @@ namespace SeeTecConnector
                 }
 
                 logger.Info("------------------------------------------------------------------------------");
-                logger.Info("Start SeeTec Connector");
+                logger.Info("Start Cayuga Connector");
 
                 // Check if connector xml configuration file exists
                 if (File.Exists(configFilePath))
                 {
-                    // Load the configuration xml and read out the configured IP address and port for the clientSocket
-                    XmlDocument xmlDoc = new XmlDocument();
-                    xmlDoc.Load(configFilePath);
-
-                    XmlNodeList elemListIPHost = xmlDoc.GetElementsByTagName("HostIP");
-
-                    for (int i = 0; i < elemListIPHost.Count; i++)
-                    {
-                        string hostIP;
-                        hostIP = elemListIPHost[i].InnerXml;
-
-                        MainWindow.hostIP = hostIP;
-                    }
-
-                    XmlNodeList elemListPortHost = xmlDoc.GetElementsByTagName("HostPort");
-
-                    for (int i = 0; i < elemListPortHost.Count; i++)
-                    {
-                        string hostPort;
-                        hostPort = elemListPortHost[i].InnerXml;
-
-                        MainWindow.hostPort = Convert.ToInt32(hostPort);
-                    }
-
-                    XmlNodeList elemListUser = xmlDoc.GetElementsByTagName("User");
-
-                    for (int i = 0; i < elemListUser.Count; i++)
-                    {
-                        string user;
-                        user = elemListUser[i].InnerXml;
-
-                        MainWindow.username = user;
-                    }
-
-                    XmlNodeList elemListPassword = xmlDoc.GetElementsByTagName("Password");
-
-                    for (int i = 0; i < elemListPassword.Count; i++)
-                    {
-                        string password;
-                        password = elemListPassword[i].InnerXml;
-
-                        // Decrypt password from XML to use it in the application
-                        MainWindow.password = MainWindow.Decrypt(password);
-                    }
-
-                    XmlNodeList elemListProfile = xmlDoc.GetElementsByTagName("Profile");
-
-                    for (int i = 0; i < elemListProfile.Count; i++)
-                    {
-                        string profile;
-                        profile = elemListProfile[i].InnerXml;
-
-                        MainWindow.profile = profile;
-                    }
-
-                    XmlNodeList elemListINR = xmlDoc.GetElementsByTagName("INR");
-
-                    for (int i = 0; i < elemListINR.Count; i++)
-                    {
-                        string inr;
-                        inr = elemListINR[i].InnerXml;
-
-                        MainWindow.inr = inr;
-                    }
-
-                    XmlNodeList elemListHeartbeat = xmlDoc.GetElementsByTagName("Heartbeat");
-
-                    for (int i = 0; i < elemListHeartbeat.Count; i++)
-                    {
-                        string heartbeat;
-                        heartbeat = elemListHeartbeat[i].InnerXml;
-
-                        MainWindow.heartbeat = Convert.ToInt32(heartbeat) * 1000; // seconds in milliseconds
-                    }
-
-                    XmlNodeList elemListRecorderInfo = xmlDoc.GetElementsByTagName("RecorderInfo");
-
-                    for (int i = 0; i < elemListRecorderInfo.Count; i++)
-                    {
-                        string recorderInfo;
-                        recorderInfo = elemListRecorderInfo[i].InnerXml;
-
-                        MainWindow.recorderInfo = Convert.ToInt32(recorderInfo) * 1000; // seconds in milliseconds
-                    }
-                    logger.Info("Connector configuration successfully loaded");
+                    this.ReadConfiguration(false);
                 }
-
                 // Create connector xml configuration file because its not created yet or its deleted
                 else
                 {
-                    // Settings for the xml
-                    XmlWriterSettings settings = new XmlWriterSettings
-                    {
-                        Encoding = Encoding.UTF8,
-                        ConformanceLevel = ConformanceLevel.Document,
-                        OmitXmlDeclaration = false,
-                        CloseOutput = true,
-                        Indent = true,
-                        IndentChars = "  ",
-                        NewLineHandling = NewLineHandling.Replace
-                    };
-
-                    // Check if the configuration directory exists. If not create directory
-                    if (!Directory.Exists(configFolderPath))
-                    {
-                        try
-                        {
-                            Directory.CreateDirectory(configFolderPath);
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.Error(ex.Message + " (PrepareStart)");
-                        }
-                    }
-
-                    // Create connector xml configuration file
-                    using (XmlWriter writer = XmlWriter.Create(configFilePath, settings))
-                    {
-                        writer.WriteStartDocument();
-                        writer.WriteStartElement("Configuration");
-
-                        writer.WriteStartElement("HostIP");
-                        writer.WriteValue("localhost");
-                        writer.WriteEndElement();
-
-                        writer.WriteStartElement("HostPort");
-                        writer.WriteValue("60000");
-                        writer.WriteEndElement();
-
-                        writer.WriteStartElement("User");
-                        writer.WriteValue("");
-                        writer.WriteEndElement();
-
-                        writer.WriteStartElement("Password");
-                        writer.WriteValue("");
-                        writer.WriteEndElement();
-
-                        writer.WriteStartElement("Profile");
-                        writer.WriteValue("");
-                        writer.WriteEndElement();
-
-                        writer.WriteStartElement("INR");
-                        writer.WriteValue("");
-                        writer.WriteEndElement();
-
-                        writer.WriteStartElement("Heartbeat");
-                        writer.WriteValue("300");
-                        writer.WriteEndElement();
-
-                        writer.WriteStartElement("RecorderInfo");
-                        writer.WriteValue("300");
-                        writer.WriteEndElement();
-
-                        writer.WriteStartElement("ConnectionSeeTec");
-                        writer.WriteValue("Unknown");
-                        writer.WriteEndElement();
-
-                        writer.WriteStartElement("ConnectionVideoguard");
-                        writer.WriteValue("Unknown");
-                        writer.WriteEndElement();
-
-                        writer.WriteEndDocument();
-                    }
-                    logger.Info("Connector configuration successfully loaded");
+                    this.CreateConfigurationXml();
                 }
             }
             catch (Exception ex)
             {
-                logger.Error(ex.Message + " (PrepareStart) ");
+                logger.Error(ex.Message);
+            }
+        }
+
+        private void CreateConfigurationXml()
+        {
+            this.CreateConfigurationFolder();
+
+            try
+            {
+                // Settings for the xml
+                XmlWriterSettings settings = new XmlWriterSettings
+                {
+                    Encoding = Encoding.UTF8,
+                    ConformanceLevel = ConformanceLevel.Document,
+                    OmitXmlDeclaration = false,
+                    CloseOutput = true,
+                    Indent = true,
+                    IndentChars = "  ",
+                    NewLineHandling = NewLineHandling.Replace
+                };
+
+                // Create connector xml configuration file
+                using (XmlWriter writer = XmlWriter.Create(configFilePath, settings))
+                {
+                    writer.WriteStartDocument();
+                    writer.WriteStartElement("Configuration");
+
+                    writer.WriteStartElement("HostIP");
+                    writer.WriteValue("localhost");
+                    writer.WriteEndElement();
+
+                    writer.WriteStartElement("HostPort");
+                    writer.WriteValue("60000");
+                    writer.WriteEndElement();
+
+                    writer.WriteStartElement("User");
+                    writer.WriteValue("");
+                    writer.WriteEndElement();
+
+                    writer.WriteStartElement("Password");
+                    writer.WriteValue("");
+                    writer.WriteEndElement();
+
+                    writer.WriteStartElement("Profile");
+                    writer.WriteValue("");
+                    writer.WriteEndElement();
+
+                    writer.WriteStartElement("INR");
+                    writer.WriteValue("");
+                    writer.WriteEndElement();
+
+                    writer.WriteStartElement("Heartbeat");
+                    writer.WriteValue("300");
+                    writer.WriteEndElement();
+
+                    writer.WriteStartElement("RecorderInfo");
+                    writer.WriteValue("300");
+                    writer.WriteEndElement();
+
+                    writer.WriteStartElement("ConnectionCayuga");
+                    writer.WriteValue("Unknown");
+                    writer.WriteEndElement();
+
+                    writer.WriteStartElement("ConnectionVideoguard");
+                    writer.WriteValue("Unknown");
+                    writer.WriteEndElement();
+
+                    writer.WriteEndDocument();
+                }
+                logger.Info("Connector configuration successfully loaded");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+            }
+        }
+
+        private void CreateConfigurationFolder()
+        {
+            // Check if the configuration directory exists. If not create directory
+            if (!Directory.Exists(configFolderPath))
+            {
+                try
+                {
+                    Directory.CreateDirectory(configFolderPath);
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex.Message);
+                }
             }
         }
 
@@ -465,7 +397,7 @@ namespace SeeTecConnector
 
                 if (MainWindow.InstallationIDResult.Result == SDKErrorCode.OK)
                 {
-                    MainWindow.isConnectedToSeeTec = true;
+                    MainWindow.isConnectedToCayuga = true;
 
                     Thread startConnectorThread = new Thread(() =>
                     {
@@ -485,18 +417,18 @@ namespace SeeTecConnector
 
                     MainWindow.ConnectedInstallationID = MainWindow.InstallationIDResult.ReturnValue;
                     videoManager.VideoManagementEvent += OnvideoManager_VideoManagement;
-                    videoManager.Disconnected += OnDisconnectToSeeTecServer;
-                    videoManager.Reconnected += OnReconnectToSeeTecServer;
+                    videoManager.Disconnected += OnDisconnectToCayugaServer;
+                    videoManager.Reconnected += OnReconnectToCayugaServer;
                     MainWindow.installationName = videoManager.GetShortInstallationName(ConnectedInstallationID);
 
                     if (Dispatcher.CheckAccess())
                     {
-                        labelStatusSeeTec.Content = "Connected";
-                        labelStatusSeeTec.Foreground = Brushes.Green;
+                        labelStatusCayuga.Content = "Connected";
+                        labelStatusCayuga.Foreground = Brushes.Green;
                     }
                     else
                     {
-                        Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Connected"; labelStatusSeeTec.Foreground = Brushes.Green; });
+                        Dispatcher.Invoke(() => { labelStatusCayuga.Content = "Connected"; labelStatusCayuga.Foreground = Brushes.Green; });
                     }
 
                     this.LogUI("Successfully connected to Cayuga server.");
@@ -505,16 +437,16 @@ namespace SeeTecConnector
                 }
                 else
                 {
-                    MainWindow.isConnectedToSeeTec = false;
+                    MainWindow.isConnectedToCayuga = false;
 
                     if (Dispatcher.CheckAccess())
                     {
-                        labelStatusSeeTec.Content = "Not Connected";
-                        labelStatusSeeTec.Foreground = Brushes.Red;
+                        labelStatusCayuga.Content = "Not Connected";
+                        labelStatusCayuga.Foreground = Brushes.Red;
                     }
                     else
                     {
-                        Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Not Connected"; labelStatusSeeTec.Foreground = Brushes.Red; });
+                        Dispatcher.Invoke(() => { labelStatusCayuga.Content = "Not Connected"; labelStatusCayuga.Foreground = Brushes.Red; });
                     }
 
                     if (Dispatcher.CheckAccess())
@@ -527,7 +459,7 @@ namespace SeeTecConnector
                         Dispatcher.Invoke(() => { btnReconnect.IsEnabled = true; btnCheckVideoguard.IsEnabled = false; });
                     }
 
-                    this.LogUI("Cannot connect to Cayuga server.Problem: " + MainWindow.InstallationIDResult.Result);
+                    this.LogUI("Cannot connect to Cayuga server. Problem: " + MainWindow.InstallationIDResult.Result);
                     this.LogUI("Connection problem. Check Connector configuration and if the Cayuga Server is running.");
 
                     logger.Warn("Cannot connect to Cayuga server. Problem: " + MainWindow.InstallationIDResult.Result);
@@ -536,62 +468,62 @@ namespace SeeTecConnector
             }
             catch (Exception ex)
             {
-                this.LogUI(ex.Message + " (ConnectToCayuga)");
+                this.LogUI(ex.Message);
 
-                logger.Error(ex.Message + " (ConnectToCayuga)");
+                logger.Error(ex.Message);
             }
         }
 
         /// <summary>
-        /// Disconnected event from SeeTec SDK
+        /// Disconnected event from Cayuga SDK
         /// </summary>
-        private void OnDisconnectToSeeTecServer(Guid installationID)
+        private void OnDisconnectToCayugaServer(Guid installationID)
         {
-            MainWindow.isConnectedToSeeTec = false;
+            MainWindow.isConnectedToCayuga = false;
 
-            this.LogUI("Disconnected to SeeTec. Waiting until Core is running again...");
+            this.LogUI("Disconnected to Cayuga. Waiting until Core is running again...");
 
-            logger.Warn("Disconnected to SeeTec. Waiting until Core is running again...");
+            logger.Warn("Disconnected to Cayuga. Waiting until Core is running again...");
 
             if (Dispatcher.CheckAccess())
             {
-                labelStatusSeeTec.Content = "Not Connected";
-                labelStatusSeeTec.Foreground = Brushes.Red;
+                labelStatusCayuga.Content = "Not Connected";
+                labelStatusCayuga.Foreground = Brushes.Red;
 
                 btnCheckVideoguard.IsEnabled = false;
             }
             else
             {
-                Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Not Connected"; labelStatusSeeTec.Foreground = Brushes.Red; btnCheckVideoguard.IsEnabled = false; });
+                Dispatcher.Invoke(() => { labelStatusCayuga.Content = "Not Connected"; labelStatusCayuga.Foreground = Brushes.Red; btnCheckVideoguard.IsEnabled = false; });
             }
         }
 
         /// <summary>
-        /// Reconnected event from SeeTec SDK
+        /// Reconnected event from Cayuga SDK
         /// </summary>
-        private void OnReconnectToSeeTecServer(Guid installationID)
+        private void OnReconnectToCayugaServer(Guid installationID)
         {
-            MainWindow.isConnectedToSeeTec = true;
+            MainWindow.isConnectedToCayuga = true;
 
-            this.LogUI("Reconnected to SeeTec.");
+            this.LogUI("Reconnected to Cayuga.");
 
-            logger.Info("Reconnected to SeeTec.");
+            logger.Info("Reconnected to Cayuga.");
 
             if (Dispatcher.CheckAccess())
             {
-                labelStatusSeeTec.Content = "Connected";
-                labelStatusSeeTec.Foreground = Brushes.Green;
+                labelStatusCayuga.Content = "Connected";
+                labelStatusCayuga.Foreground = Brushes.Green;
 
                 btnCheckVideoguard.IsEnabled = true;
             }
             else
             {
-                Dispatcher.Invoke(() => { labelStatusSeeTec.Content = "Connected"; labelStatusSeeTec.Foreground = Brushes.Green; btnCheckVideoguard.IsEnabled = true; });
+                Dispatcher.Invoke(() => { labelStatusCayuga.Content = "Connected"; labelStatusCayuga.Foreground = Brushes.Green; btnCheckVideoguard.IsEnabled = true; });
             }
         }
 
         /// <summary>
-        /// Video management events from SeeTec SDK
+        /// Video management events from Cayuga SDK
         /// </summary>
         private void OnvideoManager_VideoManagement(SDKEvent evt)
         {
@@ -656,11 +588,11 @@ namespace SeeTecConnector
                     MainWindow.DMandMDSwithFailure.Add(sourceID);
                 }
             }
-            
+
         }
 
         /// <summary>
-        /// Send heartbeat to Videoguard periodically if connected to SeeTec
+        /// Send heartbeat to Videoguard periodically if connected to Cayuga
         /// </summary>
         private void StartSendHeart()
         {
@@ -668,7 +600,7 @@ namespace SeeTecConnector
             {
                 while (true)
                 {
-                    if (MainWindow.isConnectedToSeeTec)
+                    if (MainWindow.isConnectedToCayuga)
                     {
                         SendHeartBeat();
                     }
@@ -679,7 +611,7 @@ namespace SeeTecConnector
         }
 
         /// <summary>
-        /// Send recorder info to Videoguard periodically if connected to SeeTec
+        /// Send recorder info to Videoguard periodically if connected to Cayuga
         /// </summary>
         private void StartSendRecordInfoRequest()
         {
@@ -687,7 +619,7 @@ namespace SeeTecConnector
             {
                 while (true)
                 {
-                    if (MainWindow.isConnectedToSeeTec)
+                    if (MainWindow.isConnectedToCayuga)
                     {
                         SendRecorderInfo();
                     }
@@ -698,7 +630,7 @@ namespace SeeTecConnector
         }
 
         /// <summary>
-        /// Count camera number in SeeTec system
+        /// Count camera number in Cayuga system
         /// </summary>
         private int CountCameras()
         {
@@ -709,6 +641,7 @@ namespace SeeTecConnector
                 Stack<SDKEntity> searchStack = new Stack<SDKEntity>();
                 searchStack.Push(root);
                 List<SDKEntity> videoSources = new List<SDKEntity>();
+
                 while (searchStack.Count > 0)
                 {
                     SDKEntity currentEntity = searchStack.Pop();
@@ -727,9 +660,9 @@ namespace SeeTecConnector
             }
             catch (Exception ex)
             {
-                this.LogUI(ex.Message + " (CountCameras)");
+                this.LogUI(ex.Message);
 
-                logger.Error(ex.Message + " (CountCameras) ");
+                logger.Error(ex.Message);
 
                 return -1;
             }
@@ -770,9 +703,9 @@ namespace SeeTecConnector
             }
             catch (Exception ex)
             {
-                this.LogUI(ex.Message + " (GetMac)");
+                this.LogUI(ex.Message);
 
-                logger.Error(ex.Message + " (GetMac) ");
+                logger.Error(ex.Message);
 
                 return "Unknown";
             }
@@ -784,7 +717,7 @@ namespace SeeTecConnector
             {
                 string cayugaVersion;
 
-                cayugaVersion = (string)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\SeeTec\Install", "LastSeeTecVersion", string.Empty);
+                cayugaVersion = (string)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Cayuga\Install", "LastCayugaVersion", string.Empty);
 
                 logger.Info("Cayuga version is: " + cayugaVersion);
 
@@ -792,9 +725,9 @@ namespace SeeTecConnector
             }
             catch (Exception ex)
             {
-                this.LogUI(ex.Message + " (GetVersion)");
+                this.LogUI(ex.Message);
 
-                logger.Error(ex.Message + " (GetVersion) ");
+                logger.Error(ex.Message);
 
                 return "Unknown";
             }
@@ -809,7 +742,6 @@ namespace SeeTecConnector
             {
                 client = new ReceiverServiceResponseClient();
             }
-
             return client;
         }
 
@@ -847,9 +779,9 @@ namespace SeeTecConnector
             }
             catch (Exception ex)
             {
-                this.LogUI(ex.Message + " (SendAlarm)");
+                this.LogUI(ex.Message);
 
-                logger.Error(ex.Message + " (SendAlarm) ");
+                logger.Error(ex.Message);
             }
         }
 
@@ -920,9 +852,9 @@ namespace SeeTecConnector
             }
             catch (Exception ex)
             {
-                this.LogUI(ex.Message + " (SendHeartBeat)");
+                this.LogUI(ex.Message);
 
-                logger.Error(ex.Message + " (SendHeartBeat) ");
+                logger.Error(ex.Message);
             }
         }
 
@@ -940,7 +872,7 @@ namespace SeeTecConnector
                     MACAddress = MainWindow.macAddress,
                     SerialNo = "605523", //Platzhalter
                     FirmwareVersion = MainWindow.cayugaVersion,
-                    ModelName = "SeeTec Cayuga",
+                    ModelName = "Cayuga Cayuga",
                     NoOfChannel = this.CountCameras()
                 };
 
@@ -957,96 +889,152 @@ namespace SeeTecConnector
             }
             catch (Exception ex)
             {
-                this.LogUI(ex.Message + " (SendRecorderInfo)");
+                this.LogUI(ex.Message);
 
-                logger.Error(ex.Message + " (SendRecorderInfo) ");
+                logger.Error(ex.Message);
             }
         }
 
         /// <summary>
         /// Read configuration for the Connector from XML
         /// </summary>
-        private void ReadConfiguration()
+        private void ReadConfiguration(bool configMode)
         {
-            if (File.Exists(MainWindow.configFilePath))
+            try
             {
-                // Load the configuration xml and read out the configured IP address and port for the clientSocket
-                XmlDocument xmlDoc = new XmlDocument();
-                xmlDoc.Load(MainWindow.configFilePath);
-
-                XmlNodeList elemListIPHost = xmlDoc.GetElementsByTagName("HostIP");
-
-                for (int i = 0; i < elemListIPHost.Count; i++)
+                if (File.Exists(MainWindow.configFilePath))
                 {
+                    // Load the configuration xml and read out the configured IP address and port for the clientSocket
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.Load(MainWindow.configFilePath);
+
+                    XmlNodeList elemListIPHost = xmlDoc.GetElementsByTagName("HostIP");
+
                     string hostIP;
-                    hostIP = elemListIPHost[i].InnerXml;
-                    configurationWindow.tbHostIP.Text = hostIP;
-                }
+                    hostIP = elemListIPHost[0].InnerXml;
 
-                XmlNodeList elemListPortHost = xmlDoc.GetElementsByTagName("HostPort");
+                    if (configMode)
+                    {
+                        configurationWindow.tbHostIP.Text = hostIP;
+                    }
+                    else
+                    {
+                        MainWindow.hostIP = hostIP;
+                    }
 
-                for (int i = 0; i < elemListPortHost.Count; i++)
-                {
+                    XmlNodeList elemListPortHost = xmlDoc.GetElementsByTagName("HostPort");
+
                     string hostPort;
-                    hostPort = elemListPortHost[i].InnerXml;
-                    configurationWindow.tbHostPort.Text = hostPort;
-                }
+                    hostPort = elemListPortHost[0].InnerXml;
 
-                XmlNodeList elemListUser = xmlDoc.GetElementsByTagName("User");
+                    if (configMode)
+                    {
+                        configurationWindow.tbHostPort.Text = hostPort;
+                    }
+                    else
+                    {
+                        MainWindow.hostPort = Convert.ToInt32(hostPort);
+                    }
 
-                for (int i = 0; i < elemListUser.Count; i++)
-                {
+                    XmlNodeList elemListUser = xmlDoc.GetElementsByTagName("User");
+
                     string user;
-                    user = elemListUser[i].InnerXml;
-                    configurationWindow.tbUser.Text = user;
-                }
+                    user = elemListUser[0].InnerXml;
 
-                XmlNodeList elemListPassword = xmlDoc.GetElementsByTagName("Password");
+                    if (configMode)
+                    {
+                        configurationWindow.tbUser.Text = user;
+                    }
+                    else
+                    {
+                        MainWindow.username = user;
+                    }
 
-                for (int i = 0; i < elemListPassword.Count; i++)
-                {
+                    XmlNodeList elemListPassword = xmlDoc.GetElementsByTagName("Password");
+
                     string password;
-                    password = elemListPassword[i].InnerXml;
+                    password = elemListPassword[0].InnerXml;
 
-                    // Decrypt password from XML file
-                    configurationWindow.pbPassword.Password = MainWindow.Decrypt(password);
-                }
+                    if (configMode)
+                    {
+                        // Decrypt password from XML file
+                        configurationWindow.pbPassword.Password = MainWindow.Decrypt(password);
+                    }
+                    else
+                    {
+                        // Decrypt password from XML to use it in the application
+                        MainWindow.password = MainWindow.Decrypt(password);
+                    }
 
-                XmlNodeList elemListProfile = xmlDoc.GetElementsByTagName("Profile");
+                    XmlNodeList elemListProfile = xmlDoc.GetElementsByTagName("Profile");
 
-                for (int i = 0; i < elemListProfile.Count; i++)
-                {
                     string profile;
-                    profile = elemListProfile[i].InnerXml;
-                    configurationWindow.tbProfile.Text = profile;
-                }
+                    profile = elemListProfile[0].InnerXml;
 
-                XmlNodeList elemListINR = xmlDoc.GetElementsByTagName("INR");
+                    if (configMode)
+                    {
+                        configurationWindow.tbProfile.Text = profile;
+                    }
+                    else
+                    {
+                        MainWindow.profile = profile;
+                    }
 
-                for (int i = 0; i < elemListINR.Count; i++)
-                {
+                    XmlNodeList elemListINR = xmlDoc.GetElementsByTagName("INR");
+
                     string inr;
-                    inr = elemListINR[i].InnerXml;
-                    configurationWindow.tbINR.Text = inr;
-                }
+                    inr = elemListINR[0].InnerXml;
 
-                XmlNodeList elemListHeartbeat = xmlDoc.GetElementsByTagName("Heartbeat");
+                    if (configMode)
+                    {
+                        configurationWindow.tbINR.Text = inr;
+                    }
+                    else
+                    {
+                        MainWindow.inr = inr;
+                    }
 
-                for (int i = 0; i < elemListHeartbeat.Count; i++)
-                {
+                    XmlNodeList elemListHeartbeat = xmlDoc.GetElementsByTagName("Heartbeat");
+
                     string heartbeat;
-                    heartbeat = elemListHeartbeat[i].InnerXml;
-                    configurationWindow.tbHeartbeat.Text = heartbeat;
-                }
+                    heartbeat = elemListHeartbeat[0].InnerXml;
 
-                XmlNodeList elemListRecorderInfo = xmlDoc.GetElementsByTagName("RecorderInfo");
+                    if (configMode)
+                    {
+                        configurationWindow.tbHeartbeat.Text = heartbeat;
+                    }
+                    else
+                    {
+                        MainWindow.heartbeat = Convert.ToInt32(heartbeat) * 1000;
+                    }
 
-                for (int i = 0; i < elemListRecorderInfo.Count; i++)
-                {
+                    XmlNodeList elemListRecorderInfo = xmlDoc.GetElementsByTagName("RecorderInfo");
+
                     string recorderInfo;
-                    recorderInfo = elemListRecorderInfo[i].InnerXml;
-                    configurationWindow.tbRecorderInfo.Text = recorderInfo;
+                    recorderInfo = elemListRecorderInfo[0].InnerXml;
+
+                    if (configMode)
+                    {
+                        configurationWindow.tbRecorderInfo.Text = recorderInfo;
+                    }
+                    else
+                    {
+                        MainWindow.recorderInfo = Convert.ToInt32(recorderInfo) * 1000;
+                    }
+
+                    if (!configMode)
+                    {
+                        logger.Info("Connector configuration successfully loaded");
+                    }
                 }
+                else
+                {
+                    this.CreateConfigurationXml();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
             }
         }
 
@@ -1078,6 +1066,7 @@ namespace SeeTecConnector
             {
                 if (String.IsNullOrEmpty(originalString))
                 {
+                    logger.Error("The string which needs to be encrypted can not be null.");
                     throw new ArgumentNullException("The string which needs to be encrypted can not be null.");
                 }
 
@@ -1095,13 +1084,13 @@ namespace SeeTecConnector
             }
             catch (Exception ex)
             {
-                logger.Error(ex.Message + " (Encrypt) ");
+                logger.Error(ex.Message);
                 return "";
             }
         }
 
         /// <summary>
-        /// Decrypt Password for SeeTecConnector
+        /// Decrypt Password for CayugaConnector
         /// </summary>
         public static string Decrypt(string cryptedString)
         {
@@ -1109,6 +1098,7 @@ namespace SeeTecConnector
             {
                 if (String.IsNullOrEmpty(cryptedString))
                 {
+                    logger.Error("The string which needs to be decrypted can not be null.");
                     throw new ArgumentNullException("The string which needs to be decrypted can not be null.");
                 }
 
@@ -1121,7 +1111,7 @@ namespace SeeTecConnector
             }
             catch (Exception ex)
             {
-                logger.Error(ex.Message + " (Decrypt) ");
+                logger.Error(ex.Message);
                 return "";
             }
         }
@@ -1162,8 +1152,6 @@ namespace SeeTecConnector
                 Application.Current.Shutdown();
                 Environment.Exit(0);
             }
-
-
         }
     }
 }

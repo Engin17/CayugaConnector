@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SeeTecConnector.Properties
+namespace CayugaConnector.Properties
 {
 
 

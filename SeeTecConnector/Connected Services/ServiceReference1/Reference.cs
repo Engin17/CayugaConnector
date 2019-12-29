@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SeeTecConnector.ServiceReference1 {
+namespace CayugaConnector.ServiceReference1 {
     
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
@@ -41,12 +41,12 @@ namespace SeeTecConnector.ServiceReference1 {
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    public interface IReceiverServiceResponseChannel : SeeTecConnector.ServiceReference1.IReceiverServiceResponse, System.ServiceModel.IClientChannel {
+    public interface IReceiverServiceResponseChannel : CayugaConnector.ServiceReference1.IReceiverServiceResponse, System.ServiceModel.IClientChannel {
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    public partial class ReceiverServiceResponseClient : System.ServiceModel.ClientBase<SeeTecConnector.ServiceReference1.IReceiverServiceResponse>, SeeTecConnector.ServiceReference1.IReceiverServiceResponse {
+    public partial class ReceiverServiceResponseClient : System.ServiceModel.ClientBase<CayugaConnector.ServiceReference1.IReceiverServiceResponse>, CayugaConnector.ServiceReference1.IReceiverServiceResponse {
         
         public ReceiverServiceResponseClient() {
         }
