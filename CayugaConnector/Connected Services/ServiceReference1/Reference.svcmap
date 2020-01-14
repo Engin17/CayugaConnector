@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="37f12c2e-7340-496b-9904-01c25283fd50" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="82fac3af-5732-418c-a72c-026d9ce96845" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
   <ClientOptions>
     <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
     <GenerateTaskBasedAsynchronousMethod>true</GenerateTaskBasedAsynchronousMethod>
@@ -19,12 +19,13 @@
     <ServiceContractMappings />
   </ClientOptions>
   <MetadataSources>
-    <MetadataSource Address="http://videoguard.ae/VGAlarmReceiver/Receiver.svc?wsdl" Protocol="http" SourceId="1" />
+    <MetadataSource Address="http://videoguard.ae/VGAlarmReceiver/Receiver.svc" Protocol="http" SourceId="1" />
   </MetadataSources>
   <Metadata>
-    <MetadataFile FileName="ReceiverServiceResponse.wsdl" MetadataType="Wsdl" ID="c1d7b4d1-a826-40ce-b1f0-3c92d2fbd88c" SourceId="1" SourceUrl="http://videoguard.ae/VGAlarmReceiver/Receiver.svc?wsdl" />
-    <MetadataFile FileName="Receiver.xsd" MetadataType="Schema" ID="7001d2ac-0aa7-444d-afad-8d6b505e7d46" SourceId="1" SourceUrl="http://videoguard.ae/VGAlarmReceiver/Receiver.svc?xsd=xsd1" />
-    <MetadataFile FileName="Receiver1.xsd" MetadataType="Schema" ID="aa26ef21-674e-4bc1-bd27-661bf42d581f" SourceId="1" SourceUrl="http://videoguard.ae/VGAlarmReceiver/Receiver.svc?xsd=xsd0" />
+    <MetadataFile FileName="ReceiverServiceResponse.wsdl" MetadataType="Wsdl" ID="5688ca41-2b6d-43ce-9a3c-742da247d4be" SourceId="1" SourceUrl="http://videoguard.ae/VGAlarmReceiver/Receiver.svc?wsdl" />
+    <MetadataFile FileName="Receiver.xsd" MetadataType="Schema" ID="71dfeb11-d5e3-4b97-98fc-fd3b2df1fd02" SourceId="1" SourceUrl="http://videoguard.ae/VGAlarmReceiver/Receiver.svc?xsd=xsd1" />
+    <MetadataFile FileName="Receiver.disco" MetadataType="Disco" ID="2f93fe0d-97a3-4f31-8683-187d7b54a633" SourceId="1" SourceUrl="http://videoguard.ae/VGAlarmReceiver/Receiver.svc?disco" />
+    <MetadataFile FileName="Receiver1.xsd" MetadataType="Schema" ID="feeab43a-6160-4ccb-9292-3c8cb2c40b88" SourceId="1" SourceUrl="http://videoguard.ae/VGAlarmReceiver/Receiver.svc?xsd=xsd0" />
   </Metadata>
   <Extensions>
     <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />

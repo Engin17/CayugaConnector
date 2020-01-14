@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Configuration"
     Width="600"
-    Height="350"
+    Height="370"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
 
@@ -83,7 +83,7 @@
             Name="tbHostIP"
             Width="120"
             Height="23"
-            Margin="123,42,0,0"
+            Margin="135,46,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             TextWrapping="Wrap" />
@@ -91,7 +91,7 @@
             Name="tbHostPort"
             Width="120"
             Height="23"
-            Margin="124,78,0,0"
+            Margin="135,80,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             TextWrapping="Wrap" />
@@ -99,7 +99,7 @@
             Name="tbUser"
             Width="120"
             Height="23"
-            Margin="123,114,0,0"
+            Margin="135,114,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             TextWrapping="Wrap" />
@@ -108,7 +108,7 @@
             Name="pbPassword"
             Width="120"
             Height="23"
-            Margin="123,148,0,0"
+            Margin="135,148,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top" />
 
@@ -116,7 +116,7 @@
             Name="tbProfile"
             Width="120"
             Height="23"
-            Margin="124,182,0,0"
+            Margin="135,182,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             TextWrapping="Wrap" />
@@ -147,17 +147,43 @@
 
         <Button
             Width="75"
-            Margin="124,241,0,0"
+            Margin="124,274,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Click="Button_Click"
             Content="Cancel" />
         <Button
             Width="75"
-            Margin="294,240,0,0"
+            Margin="294,273,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Click="Button_Click_1"
             Content="Save" />
+        <Label
+            Margin="49,220,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Content="Web Server:" />
+        <TextBox
+            Name="tbWebServer"
+            Width="120"
+            Height="23"
+            Margin="135,224,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            TextWrapping="Wrap" />
+        <Label
+            Margin="293,220,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Content="Web Port:" />
+        <TextBox
+            Name="tbWebPort"
+            Width="120"
+            Height="23"
+            Margin="391,224,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            TextWrapping="Wrap" />
     </Grid>
 </Window>

@@ -79,6 +79,12 @@ namespace CayugaConnector
                     MainWindow.recorderInfo = int.MaxValue / 1000;
                 }
 
+                XmlNodeList webserviceServer = xmlDoc.GetElementsByTagName("WebserviceServer");
+                webserviceServer[0].InnerXml = MainWindow.configurationWindow.tbWebServer.Text;
+
+                XmlNodeList webservicePort = xmlDoc.GetElementsByTagName("WebservicePort");
+                webservicePort[0].InnerXml = MainWindow.configurationWindow.tbWebPort.Text;
+
                 xmlDoc.Save(MainWindow.configFilePath);
 
                 if (MainWindow.isConnectedToCayuga)

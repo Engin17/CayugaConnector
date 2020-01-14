@@ -2,7 +2,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SeeTec.SDK;
-using CayugaConnector.ServiceReference1;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,6 +17,8 @@ using System.Windows;
 using System.Windows.Media;
 using System.Xml;
 using Path = System.IO.Path;
+using System.ServiceModel;
+using CayugaConnector.ServiceReference1;
 
 namespace CayugaConnector
 {
@@ -89,6 +90,8 @@ namespace CayugaConnector
         public static string inr;
         public static int heartbeat;
         public static int recorderInfo;
+        public static string webserviceServer;
+        public static string webservicePort;
 
         static byte[] bytes = ASCIIEncoding.ASCII.GetBytes("CryptKey"); // Needed for Password security (Length should be 8)
 
@@ -338,12 +341,12 @@ namespace CayugaConnector
                     writer.WriteValue("300");
                     writer.WriteEndElement();
 
-                    writer.WriteStartElement("ConnectionCayuga");
-                    writer.WriteValue("Unknown");
+                    writer.WriteStartElement("WebserviceServer");
+                    writer.WriteValue("");
                     writer.WriteEndElement();
 
-                    writer.WriteStartElement("ConnectionVideoguard");
-                    writer.WriteValue("Unknown");
+                    writer.WriteStartElement("WebservicePort");
+                    writer.WriteValue("");
                     writer.WriteEndElement();
 
                     writer.WriteEndDocument();
@@ -740,7 +743,10 @@ namespace CayugaConnector
         {
             if (client == null)
             {
-                client = new ReceiverServiceResponseClient();
+                EndpointAddress address = new EndpointAddress($"http://{MainWindow.webserviceServer}:{MainWindow.webservicePort}/VGAlarmReceiver/Receiver.svc");
+                WSHttpBinding binding = new WSHttpBinding(SecurityMode.None, true);
+
+                client = new ReceiverServiceResponseClient(binding, address);
             }
             return client;
         }
@@ -1020,6 +1026,34 @@ namespace CayugaConnector
                     else
                     {
                         MainWindow.recorderInfo = Convert.ToInt32(recorderInfo) * 1000;
+                    }
+
+                    XmlNodeList elemListWebserviceServer = xmlDoc.GetElementsByTagName("WebserviceServer");
+
+                    string webserviceServer;
+                    webserviceServer = elemListWebserviceServer[0].InnerXml;
+
+                    if (configMode)
+                    {
+                        configurationWindow.tbWebServer.Text = webserviceServer;
+                    }
+                    else
+                    {
+                        MainWindow.webserviceServer = webserviceServer;
+                    }
+
+                    XmlNodeList elemListWebservicePort = xmlDoc.GetElementsByTagName("WebservicePort");
+
+                    string webservicePort;
+                    webservicePort = elemListWebservicePort[0].InnerXml;
+
+                    if (configMode)
+                    {
+                        configurationWindow.tbWebPort.Text = webservicePort;
+                    }
+                    else
+                    {
+                        MainWindow.webservicePort = webservicePort;
                     }
 
                     if (!configMode)
